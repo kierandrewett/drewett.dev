@@ -1,11 +1,13 @@
 -   [Artifex](https://github.com/kierandrewett/artifex) is a work-in-progress personal AI assistant.
 -   [WING](https://github.com/kierandrewett/wing) is an experimental Wayland compositor with a QuickJS runtime so UI can be JSX.
+-   [de](https://github.com/kierandrewett/de) is a custom Wayland desktop environment in Rust built around Smithay, Slint, wgpu, and custom window decoration rendering.
 -   [Cassette](https://github.com/kierandrewett/cassette) is a self-hosted personal video platform with uploads, HLS transcoding, channels, comments, queues, and API-key publishing.
 -   [Bingux](https://github.com/kierandrewett/bingux) is an experimental Linux distribution with an isolated package store, atomic generations, sandboxing, and a self-hosted bootable ISO.
 -   [Noise Machine](https://github.com/kierandrewett/noise-machine) is an always-on Android ambient sound mixer controlled from a local web UI.
 -   [AI Usage Dashboard](https://github.com/kierandrewett/ai-usage) tracks Claude Code, opencode, and OpenRouter usage in a local SQLite-backed dashboard.
 -   [spotify-playlist-thing](https://github.com/kierandrewett/spotify-playlist-thing) automatically sorts Spotify liked songs into predictable playlists using Last.fm, MusicBrainz, audio analysis, and an LLM classifier.
 -   [tapoctl](https://github.com/kierandrewett/tapoctl) is a small Rust CLI for discovering and controlling TP-Link Tapo plugs on the local network.
+-   [Fusebox](https://github.com/kierandrewett/fusebox) is a local web control board for Tapo plugs with LAN discovery, live state polling, energy readings, and a browser UI.
 -   [Dot Browser](https://github.com/dothq/browser) is a privacy-focused web browser built on top of [Mozilla Firefox](https://mozilla.org/firefox).
 -   [Immidi](https://github.com/kierandrewett/immidi) is an immediate-mode note player/functional programming language for creating music.
 -   [aide](https://github.com/kierandrewett/aide) is a terminal-based IDE with tabbed workspaces, integrated git, and a built-in file browser.
