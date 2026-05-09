@@ -16,14 +16,14 @@
 		}
 
 		if (hasStatus) {
-			return "unknown";
+			return "inactive";
 		}
 
 		if (payload && typeof payload.active === "boolean") {
 			return payload.active ? "active" : "inactive";
 		}
 
-		return "unknown";
+		return "inactive";
 	}
 
 	function statusLabelFor(status, since = "") {
@@ -32,10 +32,10 @@
 		}
 
 		if (status === "inactive") {
-			return since ? `Inactive since ${since}` : "Inactive";
+			return since ? `Offline since ${since}` : "Offline";
 		}
 
-		return "Status unavailable";
+		return "Offline";
 	}
 
 	function setProfileStatus(status, since = "") {
@@ -51,7 +51,7 @@
 		try {
 			const response = await fetch(activeStatusEndpoint, { cache: "no-store" });
 			if (!response.ok) {
-				setProfileStatus("unknown");
+				setProfileStatus("inactive");
 				return;
 			}
 
@@ -60,14 +60,14 @@
 			const since = typeof payload.since === "string" ? payload.since : "";
 			setProfileStatus(status, since);
 		} catch (_) {
-			setProfileStatus("unknown");
+			setProfileStatus("inactive");
 		}
 	}
 
 	function initProfileStatus() {
 		if (!profileAvatarEl || !profileStatusTextEl) return;
 
-		setProfileStatus(profileAvatarEl.dataset.activeStatus || "unknown");
+		setProfileStatus(profileAvatarEl.dataset.activeStatus || "inactive");
 		refreshProfileStatus();
 		setInterval(refreshProfileStatus, 30000);
 	}

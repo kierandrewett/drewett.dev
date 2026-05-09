@@ -437,7 +437,7 @@ async fn api_active(State(state): State<Arc<AppState>>) -> Response {
             Json(ActiveResponse {
                 ok: false,
                 active: false,
-                status: "unknown".to_string(),
+                status: "inactive".to_string(),
                 since: None,
                 error: Some(error),
             }),
@@ -478,7 +478,7 @@ fn normalise_active_status(status: &str) -> (&'static str, bool) {
     match status.trim().to_ascii_lowercase().as_str() {
         "yes" | "active" | "online" | "true" => ("active", true),
         "no" | "inactive" | "offline" | "false" => ("inactive", false),
-        _ => ("unknown", false),
+        _ => ("inactive", false),
     }
 }
 

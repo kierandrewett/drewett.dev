@@ -342,7 +342,6 @@ main {
 	justify-self: end;
 	--status-active: #23a55a;
 	--status-inactive: #80848e;
-	--status-unknown: var(--border-strong);
 }
 
 .profile-avatar-svg {
@@ -375,7 +374,7 @@ main {
 }
 
 .profile-status-indicator {
-	fill: var(--status-unknown);
+	fill: var(--status-inactive);
 	filter: drop-shadow(0 0 1px rgb(0 0 0 / 22%));
 }
 
