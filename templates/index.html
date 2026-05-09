@@ -5,9 +5,29 @@
 		<div class="tagline-markdown">{{ tagline_html | safe }}</div>
 	</div>
 	<div class="profile-avatar" id="profile-avatar" data-active-status="unknown" title="Status unavailable">
-		<img class="profile-picture profile-picture-glow" src="/favicon.png" alt="" aria-hidden="true" />
-		<img class="profile-picture" src="/favicon.png" alt="Kieran Drewett" />
-		<span class="profile-status-indicator" aria-hidden="true"></span>
+		<img class="profile-avatar-glow" src="/favicon.png" alt="" width="320" height="320" aria-hidden="true" />
+		<svg class="profile-avatar-svg" viewBox="0 0 112 112" role="img" aria-labelledby="profile-avatar-title">
+			<title id="profile-avatar-title">Kieran Drewett</title>
+			<defs>
+				<mask id="profile-avatar-mask" maskUnits="userSpaceOnUse">
+					<circle cx="56" cy="56" r="56" fill="white" />
+					<circle cx="92" cy="92" r="18" fill="black" />
+				</mask>
+			</defs>
+			<g mask="url(#profile-avatar-mask)">
+				<foreignObject x="0" y="0" width="112" height="112">
+					<img
+						xmlns="http://www.w3.org/1999/xhtml"
+						class="profile-avatar-image"
+						src="/favicon.png"
+						alt=""
+						width="112"
+						height="112"
+					/>
+				</foreignObject>
+			</g>
+			<circle class="profile-status-indicator" cx="92" cy="92" r="11.5" aria-hidden="true" />
+		</svg>
 		<span class="profile-status-text" id="profile-status-text" aria-live="polite">Status unavailable</span>
 	</div>
 </header>

@@ -345,22 +345,26 @@ main {
 	--status-unknown: var(--border-strong);
 }
 
-.profile-picture {
-	width: 7rem;
-	height: 7rem;
-	border-radius: 9999px;
+.profile-avatar-svg {
 	display: block;
-}
-
-.profile-avatar .profile-picture:not(.profile-picture-glow) {
 	width: 100%;
 	height: 100%;
+	overflow: visible;
 }
 
-.profile-picture-glow {
+.profile-avatar-image {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	border-radius: 9999px;
+}
+
+.profile-avatar-glow {
 	position: absolute;
 	width: 20rem;
 	height: 20rem;
+	border-radius: 9999px;
 	filter: blur(150px);
 	top: 50%;
 	right: -7rem;
@@ -370,24 +374,16 @@ main {
 }
 
 .profile-status-indicator {
-	position: absolute;
-	right: 0.1rem;
-	bottom: 0.1rem;
-	z-index: 1;
-	width: 1.45rem;
-	height: 1.45rem;
-	border: 3px solid var(--background);
-	border-radius: 9999px;
-	background: var(--status-unknown);
-	box-shadow: 0 0 0 1px rgb(0 0 0 / 8%);
+	fill: var(--status-unknown);
+	filter: drop-shadow(0 0 1px rgb(0 0 0 / 22%));
 }
 
 .profile-avatar[data-active-status="active"] .profile-status-indicator {
-	background: var(--status-active);
+	fill: var(--status-active);
 }
 
 .profile-avatar[data-active-status="inactive"] .profile-status-indicator {
-	background: var(--status-inactive);
+	fill: var(--status-inactive);
 }
 
 .profile-status-text {
@@ -533,7 +529,7 @@ main {
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.profile-picture-glow,
+	.profile-avatar-glow,
 	.lastfm-player .album-art-glow {
 		display: none;
 	}
@@ -759,11 +755,6 @@ main {
 
 	.intro {
 		align-items: start;
-	}
-
-	.profile-picture {
-		width: 5.6rem;
-		height: 5.6rem;
 	}
 
 	.profile-avatar {
