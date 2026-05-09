@@ -4,8 +4,12 @@
 		<h1>Kieran Drewett</h1>
 		<div class="tagline-markdown">{{ tagline_html | safe }}</div>
 	</div>
-	<img class="profile-picture profile-picture-glow" src="/favicon.png" alt="Kieran Drewett" />
-	<img class="profile-picture" src="/favicon.png" alt="Kieran Drewett" />
+	<div class="profile-avatar" id="profile-avatar" data-active-status="unknown" title="Status unavailable">
+		<img class="profile-picture profile-picture-glow" src="/favicon.png" alt="" aria-hidden="true" />
+		<img class="profile-picture" src="/favicon.png" alt="Kieran Drewett" />
+		<span class="profile-status-indicator" aria-hidden="true"></span>
+		<span class="profile-status-text" id="profile-status-text" aria-live="polite">Status unavailable</span>
+	</div>
 </header>
 
 <section class="content-block">

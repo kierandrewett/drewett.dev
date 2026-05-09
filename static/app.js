@@ -1,4 +1,78 @@
 (() => {
+	const profileAvatarEl = document.getElementById("profile-avatar");
+	const profileStatusTextEl = document.getElementById("profile-status-text");
+	const activeStatusEndpoint = "/api/active";
+
+	function normaliseProfileStatus(payload) {
+		if (payload && typeof payload.active === "boolean") {
+			return payload.active ? "active" : "inactive";
+		}
+
+		if (!payload || typeof payload.status !== "string") {
+			return "unknown";
+		}
+
+		const status = payload.status.trim().toLowerCase();
+
+		if (["yes", "active", "online", "true"].includes(status)) {
+			return "active";
+		}
+
+		if (["no", "inactive", "offline", "false"].includes(status)) {
+			return "inactive";
+		}
+
+		return "unknown";
+	}
+
+	function statusLabelFor(status, since = "") {
+		if (status === "active") {
+			return since ? `Active since ${since}` : "Active now";
+		}
+
+		if (status === "inactive") {
+			return since ? `Inactive since ${since}` : "Inactive";
+		}
+
+		return "Status unavailable";
+	}
+
+	function setProfileStatus(status, since = "") {
+		if (!profileAvatarEl || !profileStatusTextEl) return;
+
+		const label = statusLabelFor(status, since);
+		profileAvatarEl.dataset.activeStatus = status;
+		profileAvatarEl.title = label;
+		profileStatusTextEl.textContent = label;
+	}
+
+	async function refreshProfileStatus() {
+		try {
+			const response = await fetch(activeStatusEndpoint, { cache: "no-store" });
+			if (!response.ok) {
+				setProfileStatus("unknown");
+				return;
+			}
+
+			const payload = await response.json();
+			const status = normaliseProfileStatus(payload);
+			const since = typeof payload.since === "string" ? payload.since : "";
+			setProfileStatus(status, since);
+		} catch (_) {
+			setProfileStatus("unknown");
+		}
+	}
+
+	function initProfileStatus() {
+		if (!profileAvatarEl || !profileStatusTextEl) return;
+
+		setProfileStatus(profileAvatarEl.dataset.activeStatus || "unknown");
+		refreshProfileStatus();
+		setInterval(refreshProfileStatus, 30000);
+	}
+
+	initProfileStatus();
+
 	const titleWrap = document.getElementById("track-title-wrap");
 	const titleEl = document.getElementById("track-title");
 	const artistEl = document.getElementById("artist-name");

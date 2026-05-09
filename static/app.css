@@ -332,14 +332,29 @@ main {
 	max-width: 34ch;
 }
 
+.profile-avatar {
+	position: relative;
+	display: block;
+	width: 7rem;
+	height: 7rem;
+	grid-column: 2;
+	grid-row: 1;
+	justify-self: end;
+	--status-active: #23a55a;
+	--status-inactive: #80848e;
+	--status-unknown: var(--border-strong);
+}
+
 .profile-picture {
 	width: 7rem;
 	height: 7rem;
 	border-radius: 9999px;
 	display: block;
-	grid-column: 2;
-	grid-row: 1;
-	justify-self: end;
+}
+
+.profile-avatar .profile-picture:not(.profile-picture-glow) {
+	width: 100%;
+	height: 100%;
 }
 
 .profile-picture-glow {
@@ -347,8 +362,44 @@ main {
 	width: 20rem;
 	height: 20rem;
 	filter: blur(150px);
+	top: 50%;
 	right: -7rem;
+	transform: translateY(-50%);
 	z-index: -1;
+	pointer-events: none;
+}
+
+.profile-status-indicator {
+	position: absolute;
+	right: 0.1rem;
+	bottom: 0.1rem;
+	z-index: 1;
+	width: 1.45rem;
+	height: 1.45rem;
+	border: 3px solid var(--background);
+	border-radius: 9999px;
+	background: var(--status-unknown);
+	box-shadow: 0 0 0 1px rgb(0 0 0 / 8%);
+}
+
+.profile-avatar[data-active-status="active"] .profile-status-indicator {
+	background: var(--status-active);
+}
+
+.profile-avatar[data-active-status="inactive"] .profile-status-indicator {
+	background: var(--status-inactive);
+}
+
+.profile-status-text {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
 }
 
 .content-block {
@@ -711,6 +762,11 @@ main {
 	}
 
 	.profile-picture {
+		width: 5.6rem;
+		height: 5.6rem;
+	}
+
+	.profile-avatar {
 		width: 5.6rem;
 		height: 5.6rem;
 	}

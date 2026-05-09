@@ -8,7 +8,7 @@ use axum::{
 use chrono::Datelike;
 use pulldown_cmark::{html::push_html, Options, Parser};
 use reqwest::Client;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{env, net::SocketAddr, sync::Arc, time::{Duration, Instant, UNIX_EPOCH}};
 use tera::{Context, Tera};
@@ -55,6 +55,23 @@ struct TagsResponse {
     tags: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     error: Option<String>,
+}
+
+#[derive(Serialize)]
+struct ActiveResponse {
+    ok: bool,
+    active: bool,
+    status: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    since: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    error: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct ActiveUpstreamResponse {
+    status: String,
+    since: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -119,6 +136,7 @@ async fn main() {
         .route("/cv.pdf", get(cv_pdf))
         .route("/favicon.ico", get(favicon))
         .route("/favicon.png", get(favicon))
+        .route("/api/active", get(api_active))
         .route("/api/lastfm", get(api_lastfm))
         .route("/api/lastfm/tags", get(api_lastfm_tags))
         .route_service("/app.css", ServeFile::new("static/app.css"))
@@ -403,6 +421,59 @@ async fn api_lastfm(State(state): State<Arc<AppState>>) -> Response {
             }),
         )
             .into_response(),
+    }
+}
+
+async fn api_active(State(state): State<Arc<AppState>>) -> Response {
+    match fetch_active_status(&state.client).await {
+        Ok(payload) => (StatusCode::OK, Json(payload)).into_response(),
+        Err(error) => (
+            StatusCode::BAD_GATEWAY,
+            Json(ActiveResponse {
+                ok: false,
+                active: false,
+                status: "unknown".to_string(),
+                since: None,
+                error: Some(error),
+            }),
+        )
+            .into_response(),
+    }
+}
+
+async fn fetch_active_status(client: &Client) -> Result<ActiveResponse, String> {
+    let response = client
+        .get("https://is-kieran.drewett.dev/active?format=json")
+        .timeout(Duration::from_secs(4))
+        .send()
+        .await
+        .map_err(|error| error.to_string())?;
+
+    if !response.status().is_success() {
+        return Err(format!("active status returned HTTP {}", response.status()));
+    }
+
+    let payload = response
+        .json::<ActiveUpstreamResponse>()
+        .await
+        .map_err(|error| error.to_string())?;
+
+    let (status, active) = normalise_active_status(&payload.status);
+
+    Ok(ActiveResponse {
+        ok: true,
+        active,
+        status: status.to_string(),
+        since: payload.since,
+        error: None,
+    })
+}
+
+fn normalise_active_status(status: &str) -> (&'static str, bool) {
+    match status.trim().to_ascii_lowercase().as_str() {
+        "yes" | "active" | "online" | "true" => ("active", true),
+        "no" | "inactive" | "offline" | "false" => ("inactive", false),
+        _ => ("unknown", false),
     }
 }
 
