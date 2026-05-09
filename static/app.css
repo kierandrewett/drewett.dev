@@ -362,6 +362,7 @@ main {
 
 .profile-avatar-glow {
 	position: absolute;
+	display: block;
 	width: 20rem;
 	height: 20rem;
 	border-radius: 9999px;
