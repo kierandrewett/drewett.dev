@@ -10,7 +10,12 @@ use pulldown_cmark::{html::push_html, Options, Parser};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{env, net::SocketAddr, sync::Arc, time::{Duration, Instant, UNIX_EPOCH}};
+use std::{
+    env,
+    net::SocketAddr,
+    sync::Arc,
+    time::{Duration, Instant, UNIX_EPOCH},
+};
 use tera::{Context, Tera};
 use tokio::net::TcpListener;
 use tokio::sync::RwLock;

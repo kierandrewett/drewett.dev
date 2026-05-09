@@ -4,15 +4,8 @@
 	const activeStatusEndpoint = "/api/active";
 
 	function normaliseProfileStatus(payload) {
-		if (payload && typeof payload.active === "boolean") {
-			return payload.active ? "active" : "inactive";
-		}
-
-		if (!payload || typeof payload.status !== "string") {
-			return "unknown";
-		}
-
-		const status = payload.status.trim().toLowerCase();
+		const hasStatus = typeof payload?.status === "string";
+		const status = hasStatus ? payload.status.trim().toLowerCase() : "";
 
 		if (["yes", "active", "online", "true"].includes(status)) {
 			return "active";
@@ -20,6 +13,14 @@
 
 		if (["no", "inactive", "offline", "false"].includes(status)) {
 			return "inactive";
+		}
+
+		if (hasStatus) {
+			return "unknown";
+		}
+
+		if (payload && typeof payload.active === "boolean") {
+			return payload.active ? "active" : "inactive";
 		}
 
 		return "unknown";
