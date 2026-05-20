@@ -748,6 +748,312 @@ main {
 	}
 }
 
+.notes-section {
+	display: grid;
+	gap: 0.7rem;
+}
+
+.notes-section-heading {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0.75rem;
+}
+
+.notes-section-heading h2 {
+	font-family: "Instrument Sans", "Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont,
+		"Segoe UI", sans-serif;
+	font-weight: 600;
+	font-size: 1.35rem;
+	line-height: 1.2;
+}
+
+.notes-view-all {
+	font-size: 0.9rem;
+	font-weight: 500;
+	color: var(--color-light);
+}
+
+.notes-view-all:visited {
+	color: var(--color-light);
+}
+
+.notes-view-all:hover {
+	color: var(--link);
+}
+
+.notes-preview {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 0.55rem;
+}
+
+.notes-preview li {
+	margin: 0;
+}
+
+.notes-preview a {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 0.5rem 0.7rem;
+	background-color: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	color: var(--color-lighter);
+	text-decoration: none;
+}
+
+.notes-preview a:visited {
+	color: var(--color-lighter);
+}
+
+.notes-preview a:hover {
+	border-color: var(--border-strong);
+	text-decoration: none;
+}
+
+.notes-preview-title {
+	font-weight: 600;
+	font-size: 0.95rem;
+	color: var(--text);
+	flex: 1;
+	min-width: 0;
+}
+
+.notes-preview-date {
+	font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 0.78rem;
+	color: var(--color-light);
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+
+.notes-preview-summary {
+	display: none;
+}
+
+@media (prefers-color-scheme: light) {
+	.notes-preview a {
+		box-shadow: 0 1px 2px var(--border);
+	}
+}
+
+.page-header {
+	display: grid;
+	gap: 0.45rem;
+}
+
+.page-header h1 {
+	font-size: 2.15em;
+	line-height: 1.15;
+	margin: 0;
+}
+
+.page-tagline {
+	color: var(--color-light);
+	font-size: 1rem;
+	line-height: 1.45;
+	max-width: 48ch;
+}
+
+.back-link {
+	font-size: 0.9rem;
+	color: var(--color-light);
+	width: fit-content;
+}
+
+.back-link:visited {
+	color: var(--color-light);
+}
+
+.back-link:hover {
+	color: var(--link);
+}
+
+.notes-list {
+	display: grid;
+	gap: 0.75rem;
+}
+
+.notes-empty {
+	color: var(--color-light);
+	font-size: 0.95rem;
+}
+
+.note-card {
+	background-color: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	transition: border-color 150ms ease;
+}
+
+.note-card:hover {
+	border-color: var(--border-strong);
+}
+
+.note-card-link {
+	display: grid;
+	gap: 0.3rem;
+	padding: 0.85rem 1rem;
+	color: var(--color-lighter);
+	text-decoration: none;
+}
+
+.note-card-link:visited {
+	color: var(--color-lighter);
+}
+
+.note-card-link:hover {
+	text-decoration: none;
+}
+
+.note-card-meta {
+	font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 0.78rem;
+	color: var(--color-light);
+	letter-spacing: 0.01em;
+	font-variant-numeric: tabular-nums;
+}
+
+.note-card-title {
+	font-size: 1.15rem;
+	line-height: 1.25;
+	margin: 0;
+	color: var(--text);
+}
+
+.note-card-summary {
+	font-size: 0.95rem;
+	line-height: 1.45;
+	color: var(--color-light);
+	margin: 0;
+}
+
+@media (prefers-color-scheme: light) {
+	.note-card {
+		box-shadow: 0 1px 2px var(--border);
+	}
+}
+
+.note-detail {
+	display: grid;
+	gap: 0.85rem;
+	max-width: 42rem;
+}
+
+.note-detail-meta {
+	font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 0.78rem;
+	color: var(--color-light);
+	font-variant-numeric: tabular-nums;
+}
+
+.note-detail-title {
+	font-size: 2em;
+	line-height: 1.15;
+	margin: 0;
+}
+
+.note-detail-summary {
+	font-family: "Lora", serif;
+	font-style: italic;
+	color: var(--color-light);
+	font-size: 1.1rem;
+	line-height: 1.45;
+}
+
+.note-body {
+	font-family: "Lora", "Instrument Sans", system-ui, serif;
+	font-size: 1.05rem;
+	line-height: 1.65;
+	color: var(--text);
+	display: grid;
+	gap: 1rem;
+}
+
+.note-body h2,
+.note-body h3,
+.note-body h4 {
+	margin: 0.6rem 0 0;
+	line-height: 1.25;
+}
+
+.note-body h2 {
+	font-size: 1.5rem;
+}
+
+.note-body h3 {
+	font-size: 1.2rem;
+}
+
+.note-body h4 {
+	font-size: 1.05rem;
+}
+
+.note-body p {
+	margin: 0;
+}
+
+.note-body ul,
+.note-body ol {
+	margin: 0;
+	padding-inline-start: 1.4rem;
+}
+
+.note-body li {
+	margin: 0.25rem 0;
+}
+
+.note-body code {
+	font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 0.9em;
+	background-color: var(--card);
+	border: 1px solid var(--border);
+	border-radius: 4px;
+	padding: 0.05rem 0.3rem;
+}
+
+.note-body pre {
+	background-color: var(--card);
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	padding: 0.85rem 1rem;
+	overflow-x: auto;
+	font-size: 0.9rem;
+	line-height: 1.5;
+}
+
+.note-body pre code {
+	background: none;
+	border: none;
+	padding: 0;
+	font-size: inherit;
+}
+
+.note-body blockquote {
+	margin: 0;
+	padding: 0.2rem 0 0.2rem 1rem;
+	border-left: 3px solid var(--border-strong);
+	color: var(--color-light);
+	font-style: italic;
+}
+
+.note-body img {
+	max-width: 100%;
+	height: auto;
+	border-radius: 6px;
+}
+
+.note-body hr {
+	border: none;
+	border-top: 1px solid var(--border);
+	margin: 0.5rem 0;
+}
+
 @media (max-width: 700px) {
 	main {
 		padding: 2rem 0.95rem 0.95rem;

@@ -1,0 +1,27 @@
+{% extends "base.html" %} {% block title %}Notes — Kieran Drewett{% endblock title %} {% block content %}
+<header class="page-header">
+	<a class="back-link" href="/">← Kieran Drewett</a>
+	<h1>Notes</h1>
+	<p class="page-tagline">Things I've written down so I don't forget them.</p>
+</header>
+
+<section class="content-block notes-list">
+	{% if notes | length == 0 %}
+	<p class="notes-empty">Nothing here yet. Check back later.</p>
+	{% else %} {% for note in notes %}
+	<article class="note-card">
+		<a class="note-card-link" href="/notes/{{ note.slug }}">
+			<div class="note-card-meta">
+				{% if note.date %}<time>{{ note.date }}</time>{% endif %}
+			</div>
+			<h2 class="note-card-title">{{ note.title }}</h2>
+			{% if note.summary %}<p class="note-card-summary">{{ note.summary }}</p>{% endif %}
+		</a>
+	</article>
+	{% endfor %} {% endif %}
+</section>
+
+<footer class="site-footer">
+	<div class="footer-markdown">{{ footer_html | safe }}</div>
+</footer>
+{% endblock content %}
