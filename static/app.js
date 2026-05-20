@@ -554,12 +554,17 @@
 	const settingsToggle = document.getElementById("reading-rail-settings");
 	const settingsResetEl = document.getElementById("reading-settings-reset");
 
+	const noteDetail = noteBody.closest(".note-detail") || noteBody;
+
 	function applyPrefs() {
 		noteBody.dataset.font = prefs.font;
-		noteBody.style.setProperty("--reading-size", `${prefs.size}rem`);
-		noteBody.style.setProperty("--reading-leading", String(prefs.leading));
-		noteBody.style.setProperty("--reading-tracking", `${prefs.tracking}em`);
-		noteBody.style.setProperty("--reading-width", `${prefs.width}rem`);
+		noteDetail.style.setProperty("--reading-size", `${prefs.size}rem`);
+		noteDetail.style.setProperty("--reading-leading", String(prefs.leading));
+		noteDetail.style.setProperty("--reading-tracking", `${prefs.tracking}em`);
+		noteDetail.style.setProperty("--reading-width", `${prefs.width}rem`);
+		// Mirror reading-width onto :root so fixed-position chrome (rail, TOC)
+		// can anchor to the article column without traversing into note-detail.
+		document.documentElement.style.setProperty("--reading-width", `${prefs.width}rem`);
 
 		if (prefs.theme === "auto") {
 			document.documentElement.removeAttribute("data-reading-theme");
@@ -976,7 +981,7 @@
 	const entries = headings.map((h) => {
 		const id = h.id || slugify(h.textContent || "");
 		h.id = id;
-		h.style.scrollMarginTop = "4rem";
+		h.style.scrollMarginTop = "7rem";
 		const li = document.createElement("li");
 		if (h.tagName === "H3") li.className = "is-h3";
 		const a = document.createElement("a");
@@ -1012,8 +1017,19 @@
 		spineActive.setAttribute("height", String(Math.max(0, Math.round(h))));
 	}
 
+	let clickLockUntil = 0;
+
 	function updateActiveOnScroll() {
-		const offset = 120;
+		if (performance.now() < clickLockUntil) return;
+
+		const nearBottom =
+			window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+		if (nearBottom) {
+			setActive(entries[entries.length - 1].id);
+			return;
+		}
+
+		const offset = 140;
 		let active = entries[0];
 		for (const entry of entries) {
 			const top = entry.heading.getBoundingClientRect().top;
@@ -1021,6 +1037,15 @@
 			else break;
 		}
 		setActive(active.id);
+	}
+
+	for (const entry of entries) {
+		entry.link.addEventListener("click", () => {
+			setActive(entry.id);
+			// Brief lock to stop the scroll handler from clobbering the active state
+			// while the browser is mid-jump to the target heading.
+			clickLockUntil = performance.now() + 600;
+		});
 	}
 
 	window.addEventListener("scroll", updateActiveOnScroll, { passive: true });
