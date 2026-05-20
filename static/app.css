@@ -1154,7 +1154,6 @@ main {
 	.sticky-board {
 		gap: 1.2rem 1.1rem;
 		padding: 0.9rem 0.2rem 1.3rem;
-		justify-content: center;
 	}
 
 	.sticky-note {
