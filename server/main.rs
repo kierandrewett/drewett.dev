@@ -38,6 +38,7 @@ struct Note {
     title: String,
     summary: String,
     date: String,
+    unlisted: bool,
     #[serde(skip_serializing)]
     html: String,
 }
@@ -441,12 +442,17 @@ fn build_note(slug: String, raw: &str) -> Note {
         .cloned()
         .or_else(|| fm.get("description").cloned())
         .unwrap_or_default();
+    let unlisted = fm
+        .get("unlisted")
+        .map(|s| matches!(s.trim().to_ascii_lowercase().as_str(), "true" | "yes" | "1"))
+        .unwrap_or(false);
     let html = render_markdown(&preprocess_markdown(&body));
     Note {
         slug,
         title,
         summary,
         date,
+        unlisted,
         html,
     }
 }
@@ -503,7 +509,13 @@ async fn home(State(state): State<Arc<AppState>>) -> impl IntoResponse {
         Err(_) => InitialLastfm::connecting(),
     };
 
-    let recent_notes: Vec<Note> = notes.notes.iter().take(3).cloned().collect();
+    let recent_notes: Vec<Note> = notes
+        .notes
+        .iter()
+        .filter(|n| !n.unlisted)
+        .take(3)
+        .cloned()
+        .collect();
 
     let mut context = Context::new();
     context.insert("projects_html", &projects_html);
@@ -532,8 +544,10 @@ async fn notes_list(State(state): State<Arc<AppState>>) -> Response {
     let app_css_version = asset_version("static/app.css").await;
     let app_js_version = asset_version("static/app.js").await;
 
+    let listed: Vec<&Note> = notes.notes.iter().filter(|n| !n.unlisted).collect();
+
     let mut context = Context::new();
-    context.insert("notes", &notes.notes);
+    context.insert("notes", &listed);
     context.insert("footer_html", &footer_html);
     context.insert("app_css_version", &app_css_version);
     context.insert("app_js_version", &app_js_version);

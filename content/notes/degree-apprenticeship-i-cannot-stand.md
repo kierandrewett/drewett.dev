@@ -2,6 +2,7 @@
 title: A degree apprenticeship I cannot stand
 date: 2026-05-20
 summary: Why no realistic pay rise would fix this job, and what I am doing instead
+unlisted: true
 ---
 
 Being a degree apprentice<sup><a href="#ref-1">[1]</a></sup> at a large consultancy is, frankly, one of the worst structural traps you can walk yourself into at eighteen, and I say that as someone currently a year and a half from the other side of it. The apprenticeship pays for your degree, which means leaving is not really leaving, it is forfeiting the entire arrangement, and that single fact does most of the heavy lifting in why I am still showing up to a job I cannot stand. The pay sits at the lower end of graduate compensation, which sounds fine on paper for someone my age until you understand what is being extracted in return, and to be brutally honest no realistic pay rise would fix this one for me, the issue is not money, it is fit.

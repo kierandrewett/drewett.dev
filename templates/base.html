@@ -7,6 +7,7 @@
 		<meta name="description" content="Kieran Drewett" />
 		<link rel="icon" href="/favicon.ico" />
 		<link rel="stylesheet" href='/app.css?v={{ app_css_version | default(value="1") }}' />
+		{% block head_extra %}{% endblock head_extra %}
 		<!-- Privacy-friendly analytics by Plausible -->
 		<script async src="https://metrics.drewett.dev/js/pa-4eN693JJ_obx7Qlnbg3-v.js"></script>
 		<script>
