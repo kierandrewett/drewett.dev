@@ -212,6 +212,8 @@ table {
 
 html {
 	background: var(--background);
+	-webkit-text-size-adjust: 100%;
+	text-size-adjust: 100%;
 }
 
 html,
@@ -991,9 +993,10 @@ main {
 }
 
 .note-detail-title {
-	font-size: 2em;
-	line-height: 1.15;
+	font-size: 2.6em;
+	line-height: 1.1;
 	margin: 0;
+	letter-spacing: -0.01em;
 }
 
 .note-detail-summary {
@@ -1006,11 +1009,37 @@ main {
 
 .note-body {
 	font-family: "Lora", "Instrument Sans", system-ui, serif;
-	font-size: 1.05rem;
+	font-size: 1rem;
 	line-height: 1.65;
 	color: var(--text);
 	display: grid;
 	gap: 1rem;
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+	hyphens: auto;
+	-webkit-hyphens: auto;
+}
+
+.note-body p {
+	text-align: justify;
+	text-justify: inter-word;
+}
+
+.note-body a {
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
+
+.note-body sup {
+	font-size: 0.72em;
+	vertical-align: super;
+	line-height: 0;
+}
+
+.note-body sub {
+	font-size: 0.72em;
+	vertical-align: sub;
+	line-height: 0;
 }
 
 .note-body h2,
@@ -1039,11 +1068,22 @@ main {
 .note-body ul,
 .note-body ol {
 	margin: 0;
-	padding-inline-start: 1.4rem;
+	padding-inline-start: 1.75rem;
+}
+
+.note-body ol {
+	list-style: decimal;
 }
 
 .note-body li {
-	margin: 0.25rem 0;
+	margin: 0.4rem 0;
+	padding-inline-start: 0.25rem;
+	text-align: left;
+}
+
+.note-body li::marker {
+	color: var(--color-light);
+	font-variant-numeric: tabular-nums;
 }
 
 .note-body code {
@@ -1114,7 +1154,6 @@ main {
 	.sticky-board {
 		gap: 1.2rem 1.1rem;
 		padding: 0.9rem 0.2rem 1.3rem;
-		justify-content: center;
 	}
 
 	.sticky-note {
@@ -1130,5 +1169,37 @@ main {
 	.sticky-note-summary {
 		font-size: 0.8rem;
 		-webkit-line-clamp: 3;
+	}
+
+	.note-detail {
+		gap: 0.7rem;
+	}
+
+	.note-detail-title {
+		font-size: 2em;
+		line-height: 1.12;
+	}
+
+	.note-detail-summary {
+		font-size: 1rem;
+	}
+
+	.note-body {
+		font-size: 0.95rem;
+		line-height: 1.55;
+		gap: 0.85rem;
+	}
+
+	.note-body ul,
+	.note-body ol {
+		padding-inline-start: 1.45rem;
+	}
+
+	.note-body h2 {
+		font-size: 1.3rem;
+	}
+
+	.note-body h3 {
+		font-size: 1.1rem;
 	}
 }
