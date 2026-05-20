@@ -1,5 +1,5 @@
 use axum::{
-    extract::State,
+    extract::{Path, State},
     http::{header, HeaderValue, StatusCode},
     response::{Html, IntoResponse, Redirect, Response},
     routing::get,
@@ -11,6 +11,7 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{
+    collections::HashMap,
     env,
     net::SocketAddr,
     sync::Arc,
@@ -31,12 +32,32 @@ struct CachedContent {
     fetched_at: Instant,
 }
 
+#[derive(Clone, Serialize)]
+struct Note {
+    slug: String,
+    title: String,
+    summary: String,
+    date: String,
+    #[serde(skip_serializing)]
+    html: String,
+}
+
+#[derive(Clone)]
+struct CachedNotes {
+    notes: Vec<Note>,
+    fetched_at: Instant,
+}
+
 #[derive(Clone)]
 struct AppState {
     client: Client,
     content_base_url: String,
     content_cache: Arc<RwLock<Option<CachedContent>>>,
     content_cache_ttl: Duration,
+    notes_index_url: String,
+    notes_local_dir: String,
+    notes_cache: Arc<RwLock<Option<CachedNotes>>>,
+    notes_cache_ttl: Duration,
     templates: Arc<Tera>,
 }
 
@@ -127,16 +148,34 @@ async fn main() {
         .and_then(|v| v.parse().ok())
         .unwrap_or(300);
 
+    let notes_index_url = env::var("NOTES_INDEX_URL").unwrap_or_else(|_| {
+        "https://api.github.com/repos/kierandrewett/drewett.dev/contents/content/notes".to_string()
+    });
+
+    let notes_local_dir =
+        env::var("NOTES_LOCAL_DIR").unwrap_or_else(|_| "content/notes".to_string());
+
+    let notes_cache_secs: u64 = env::var("NOTES_CACHE_SECS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(content_cache_secs);
+
     let state = Arc::new(AppState {
         client,
         content_base_url,
         content_cache: Arc::new(RwLock::new(None)),
         content_cache_ttl: Duration::from_secs(content_cache_secs),
+        notes_index_url,
+        notes_local_dir,
+        notes_cache: Arc::new(RwLock::new(None)),
+        notes_cache_ttl: Duration::from_secs(notes_cache_secs),
         templates: Arc::new(templates),
     });
 
     let app = Router::new()
         .route("/", get(home))
+        .route("/notes", get(notes_list))
+        .route("/notes/{slug}", get(note_detail))
         .route("/cv", get(cv_redirect))
         .route("/cv.pdf", get(cv_pdf))
         .route("/favicon.ico", get(favicon))
@@ -235,10 +274,205 @@ async fn get_content(state: &AppState) -> CachedContent {
     content
 }
 
-async fn home(State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    let content = get_content(&state).await;
+async fn fetch_remote_notes(client: &Client, index_url: &str) -> Vec<(String, String)> {
+    let response = match client.get(index_url).send().await {
+        Ok(r) => r,
+        Err(_) => return Vec::new(),
+    };
+    if !response.status().is_success() {
+        return Vec::new();
+    }
+    let entries: Vec<Value> = match response.json().await {
+        Ok(v) => v,
+        Err(_) => return Vec::new(),
+    };
 
-    let (tags_result, lastfm_result) = tokio::join!(
+    let mut set = tokio::task::JoinSet::new();
+    for entry in entries {
+        let name = entry
+            .get("name")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+        let download_url = entry
+            .get("download_url")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+        if !name.ends_with(".md") || download_url.is_empty() {
+            continue;
+        }
+        let client = client.clone();
+        set.spawn(async move {
+            let body = client.get(&download_url).send().await.ok()?.text().await.ok()?;
+            let slug = name.trim_end_matches(".md").to_string();
+            Some((slug, body))
+        });
+    }
+
+    let mut results = Vec::new();
+    while let Some(res) = set.join_next().await {
+        if let Ok(Some(pair)) = res {
+            results.push(pair);
+        }
+    }
+    results
+}
+
+async fn fetch_local_notes(dir: &str) -> Vec<(String, String)> {
+    let mut entries = match tokio::fs::read_dir(dir).await {
+        Ok(e) => e,
+        Err(_) => return Vec::new(),
+    };
+    let mut out = Vec::new();
+    while let Ok(Some(entry)) = entries.next_entry().await {
+        let name = entry.file_name().to_string_lossy().to_string();
+        if !name.ends_with(".md") {
+            continue;
+        }
+        let body = match tokio::fs::read_to_string(entry.path()).await {
+            Ok(b) => b,
+            Err(_) => continue,
+        };
+        let slug = name.trim_end_matches(".md").to_string();
+        out.push((slug, body));
+    }
+    out
+}
+
+async fn fetch_all_notes(state: &AppState) -> CachedNotes {
+    let mut raw = fetch_remote_notes(&state.client, &state.notes_index_url).await;
+    if raw.is_empty() {
+        raw = fetch_local_notes(&state.notes_local_dir).await;
+    }
+
+    let mut notes: Vec<Note> = raw
+        .into_iter()
+        .map(|(slug, body)| build_note(slug, &body))
+        .collect();
+
+    notes.sort_by(|a, b| b.date.cmp(&a.date).then_with(|| b.slug.cmp(&a.slug)));
+
+    CachedNotes {
+        notes,
+        fetched_at: Instant::now(),
+    }
+}
+
+async fn get_notes(state: &AppState) -> CachedNotes {
+    {
+        let cache = state.notes_cache.read().await;
+        if let Some(cached) = &*cache {
+            if cached.fetched_at.elapsed() < state.notes_cache_ttl {
+                return cached.clone();
+            }
+        }
+    }
+
+    let mut cache = state.notes_cache.write().await;
+    if let Some(cached) = &*cache {
+        if cached.fetched_at.elapsed() < state.notes_cache_ttl {
+            return cached.clone();
+        }
+    }
+
+    let notes = fetch_all_notes(state).await;
+    *cache = Some(notes.clone());
+    notes
+}
+
+fn parse_frontmatter(raw: &str) -> (HashMap<String, String>, String) {
+    let trimmed = raw.trim_start_matches(['\u{feff}', '\n', '\r', ' ', '\t']);
+    let after_open = match trimmed.strip_prefix("---") {
+        Some(r) => r,
+        None => return (HashMap::new(), raw.to_string()),
+    };
+    let after_open = after_open.strip_prefix('\r').unwrap_or(after_open);
+    let after_open = match after_open.strip_prefix('\n') {
+        Some(r) => r,
+        None => return (HashMap::new(), raw.to_string()),
+    };
+    let end = match after_open.find("\n---") {
+        Some(i) => i,
+        None => return (HashMap::new(), raw.to_string()),
+    };
+    let yaml = &after_open[..end];
+    let after_close = &after_open[end + 4..];
+    let body = after_close
+        .split_once('\n')
+        .map(|(_, b)| b)
+        .unwrap_or("")
+        .to_string();
+
+    let mut map = HashMap::new();
+    for line in yaml.lines() {
+        let line = line.trim_end();
+        let trimmed_line = line.trim_start();
+        if trimmed_line.is_empty() || trimmed_line.starts_with('#') {
+            continue;
+        }
+        if let Some((k, v)) = line.split_once(':') {
+            let key = k.trim().to_string();
+            let mut value = v.trim().to_string();
+            if value.len() >= 2 {
+                let bytes = value.as_bytes();
+                let first = bytes[0];
+                let last = bytes[bytes.len() - 1];
+                if (first == b'"' && last == b'"') || (first == b'\'' && last == b'\'') {
+                    value = value[1..value.len() - 1].to_string();
+                }
+            }
+            map.insert(key, value);
+        }
+    }
+    (map, body)
+}
+
+fn build_note(slug: String, raw: &str) -> Note {
+    let (fm, body) = parse_frontmatter(raw);
+    let title = fm
+        .get("title")
+        .cloned()
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| prettify_slug(&slug));
+    let date = fm.get("date").cloned().unwrap_or_default();
+    let summary = fm
+        .get("summary")
+        .cloned()
+        .or_else(|| fm.get("description").cloned())
+        .unwrap_or_default();
+    let html = render_markdown(&preprocess_markdown(&body));
+    Note {
+        slug,
+        title,
+        summary,
+        date,
+        html,
+    }
+}
+
+fn prettify_slug(slug: &str) -> String {
+    slug.split('-')
+        .filter(|p| !p.is_empty())
+        .map(|p| {
+            let mut chars = p.chars();
+            match chars.next() {
+                Some(first) => {
+                    let mut out: String = first.to_uppercase().collect();
+                    out.push_str(chars.as_str());
+                    out
+                }
+                None => String::new(),
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+async fn home(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    let (content, notes, tags_result, lastfm_result) = tokio::join!(
+        get_content(&state),
+        get_notes(&state),
         fetch_top_tags(&state.client),
         fetch_currently_scrobbling(&state.client),
     );
@@ -269,6 +503,8 @@ async fn home(State(state): State<Arc<AppState>>) -> impl IntoResponse {
         Err(_) => InitialLastfm::connecting(),
     };
 
+    let recent_notes: Vec<Note> = notes.notes.iter().take(3).cloned().collect();
+
     let mut context = Context::new();
     context.insert("projects_html", &projects_html);
     context.insert("profiles_html", &profiles_html);
@@ -279,8 +515,60 @@ async fn home(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     context.insert("initial_lastfm", &initial_lastfm);
     context.insert("app_css_version", &app_css_version);
     context.insert("app_js_version", &app_js_version);
+    context.insert("recent_notes", &recent_notes);
 
     match state.templates.render("index.html", &context) {
+        Ok(rendered) => Html(rendered).into_response(),
+        Err(error) => plain_error(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            &format!("template render failed: {error}"),
+        ),
+    }
+}
+
+async fn notes_list(State(state): State<Arc<AppState>>) -> Response {
+    let (content, notes) = tokio::join!(get_content(&state), get_notes(&state));
+    let footer_html = render_markdown(&preprocess_markdown(&content.footer));
+    let app_css_version = asset_version("static/app.css").await;
+    let app_js_version = asset_version("static/app.js").await;
+
+    let mut context = Context::new();
+    context.insert("notes", &notes.notes);
+    context.insert("footer_html", &footer_html);
+    context.insert("app_css_version", &app_css_version);
+    context.insert("app_js_version", &app_js_version);
+
+    match state.templates.render("notes.html", &context) {
+        Ok(rendered) => Html(rendered).into_response(),
+        Err(error) => plain_error(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            &format!("template render failed: {error}"),
+        ),
+    }
+}
+
+async fn note_detail(
+    State(state): State<Arc<AppState>>,
+    Path(slug): Path<String>,
+) -> Response {
+    let (content, notes) = tokio::join!(get_content(&state), get_notes(&state));
+    let note = match notes.notes.iter().find(|n| n.slug == slug) {
+        Some(n) => n.clone(),
+        None => return Redirect::temporary("/notes").into_response(),
+    };
+
+    let footer_html = render_markdown(&preprocess_markdown(&content.footer));
+    let app_css_version = asset_version("static/app.css").await;
+    let app_js_version = asset_version("static/app.js").await;
+
+    let mut context = Context::new();
+    context.insert("note", &note);
+    context.insert("note_html", &note.html);
+    context.insert("footer_html", &footer_html);
+    context.insert("app_css_version", &app_css_version);
+    context.insert("app_js_version", &app_js_version);
+
+    match state.templates.render("note.html", &context) {
         Ok(rendered) => Html(rendered).into_response(),
         Err(error) => plain_error(
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -619,10 +907,17 @@ fn render_markdown(markdown: &str) -> String {
     let parser = Parser::new_ext(markdown, options);
     let mut output = String::new();
     push_html(&mut output, parser);
-    output.replace(
-        "<a href=\"",
-        "<a target=\"_blank\" rel=\"noreferrer\" href=\"",
-    )
+    // Only mark external links as new-tab; leave anchors, relative paths,
+    // and mailto: alone so in-page footnote refs actually scroll.
+    output
+        .replace(
+            "<a href=\"http",
+            "<a target=\"_blank\" rel=\"noreferrer\" href=\"http",
+        )
+        .replace(
+            "<a href=\"//",
+            "<a target=\"_blank\" rel=\"noreferrer\" href=\"//",
+        )
 }
 
 fn title_case_tag(tag: &str) -> String {

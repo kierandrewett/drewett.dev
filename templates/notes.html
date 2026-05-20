@@ -1,0 +1,29 @@
+{% extends "base.html" %} {% block title %}Notes — Kieran Drewett{% endblock title %} {% block content %}
+<header class="page-header">
+	<a class="back-link" href="/">← Kieran Drewett</a>
+	<h1>Notes</h1>
+	<p class="page-tagline">Things I've written down so I don't forget them.</p>
+</header>
+
+<section class="content-block notes-list">
+	{% if notes | length == 0 %}
+	<p class="notes-empty">Nothing here yet. Check back later.</p>
+	{% else %}
+	<ul class="sticky-board">
+		{% for note in notes %}
+		<li class="sticky-note-item">
+			<a class="sticky-note" href="/notes/{{ note.slug }}">
+				<h2 class="sticky-note-title">{{ note.title }}</h2>
+				{% if note.summary %}<p class="sticky-note-summary">{{ note.summary }}</p>{% endif %}
+				{% if note.date %}<time class="sticky-note-date">{{ note.date }}</time>{% endif %}
+			</a>
+		</li>
+		{% endfor %}
+	</ul>
+	{% endif %}
+</section>
+
+<footer class="site-footer">
+	<div class="footer-markdown">{{ footer_html | safe }}</div>
+</footer>
+{% endblock content %}

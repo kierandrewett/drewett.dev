@@ -106,6 +106,28 @@
 	</section>
 </section>
 
+<section class="content-block notes-section">
+	<div class="notes-section-heading">
+		<h2>Notes</h2>
+		<a class="notes-view-all" href="/notes">View all →</a>
+	</div>
+	{% if recent_notes and recent_notes | length > 0 %}
+	<ul class="sticky-board sticky-board-preview">
+		{% for note in recent_notes %}
+		<li class="sticky-note-item">
+			<a class="sticky-note" href="/notes/{{ note.slug }}">
+				<h3 class="sticky-note-title">{{ note.title }}</h3>
+				{% if note.summary %}<p class="sticky-note-summary">{{ note.summary }}</p>{% endif %}
+				{% if note.date %}<time class="sticky-note-date">{{ note.date }}</time>{% endif %}
+			</a>
+		</li>
+		{% endfor %}
+	</ul>
+	{% else %}
+	<p class="notes-empty">Nothing here yet.</p>
+	{% endif %}
+</section>
+
 <section class="content-block projects-section">
 	<h2>Projects</h2>
 	<div class="projects-markdown">{{ projects_html | safe }}</div>

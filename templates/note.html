@@ -1,0 +1,18 @@
+{% extends "base.html" %} {% block title %}{{ note.title }} — Kieran Drewett{% endblock title %} {% block content %}
+<header class="page-header">
+	<a class="back-link" href="/notes">← Notes</a>
+</header>
+
+<article class="note-detail">
+	<div class="note-detail-meta">
+		{% if note.date %}<time>{{ note.date }}</time>{% endif %}
+	</div>
+	<h1 class="note-detail-title">{{ note.title }}</h1>
+	{% if note.summary %}<p class="note-detail-summary">{{ note.summary }}</p>{% endif %}
+	<div class="note-body">{{ note_html | safe }}</div>
+</article>
+
+<footer class="site-footer">
+	<div class="footer-markdown">{{ footer_html | safe }}</div>
+</footer>
+{% endblock content %}
