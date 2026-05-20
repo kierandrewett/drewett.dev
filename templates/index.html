@@ -118,7 +118,7 @@
 			<a class="sticky-note" href="/notes/{{ note.slug }}">
 				<h3 class="sticky-note-title">{{ note.title }}</h3>
 				{% if note.summary %}<p class="sticky-note-summary">{{ note.summary }}</p>{% endif %}
-				{% if note.date %}<time class="sticky-note-date">{{ note.date }}</time>{% endif %}
+				{% if note.date %}<time class="sticky-note-date" datetime="{{ note.date_iso }}">{{ note.date }}</time>{% endif %}
 			</a>
 		</li>
 		{% endfor %}

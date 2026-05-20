@@ -5,12 +5,250 @@
 
 <article class="note-detail">
 	<div class="note-detail-meta">
-		{% if note.date %}<time>{{ note.date }}</time>{% endif %}
+		{% if note.date %}<time datetime="{{ note.date_iso }}">{{ note.date }}</time>{% endif %}
 	</div>
 	<h1 class="note-detail-title">{{ note.title }}</h1>
 	{% if note.summary %}<p class="note-detail-summary">{{ note.summary }}</p>{% endif %}
-	<div class="note-body">{{ note_html | safe }}</div>
+	<div class="note-body" id="note-body">{{ note_html | safe }}</div>
 </article>
+
+<aside class="reading-rail" id="reading-rail" aria-label="Reading tools">
+	<button
+		type="button"
+		class="reading-rail-button"
+		id="reading-rail-rsvp"
+		aria-label="Open speed reader"
+		aria-haspopup="dialog"
+		title="Speed read (RSVP)"
+	>
+		<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+			<path d="M7 5.5v13l11-6.5L7 5.5z" fill="currentColor" />
+		</svg>
+	</button>
+	<button
+		type="button"
+		class="reading-rail-button"
+		id="reading-rail-settings"
+		aria-label="Reading preferences"
+		aria-haspopup="dialog"
+		aria-expanded="false"
+		title="Reading preferences"
+	>
+		<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+			<path
+				d="M5 7h10M5 12h14M5 17h8"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				fill="none"
+			/>
+		</svg>
+	</button>
+</aside>
+
+<div
+	class="reading-settings"
+	id="reading-settings"
+	role="dialog"
+	aria-label="Reading preferences"
+	hidden
+>
+	<div class="reading-settings-header">
+		<span>Reading preferences</span>
+		<button type="button" class="reading-settings-reset" id="reading-settings-reset">
+			Reset
+		</button>
+	</div>
+
+	<div class="reading-setting">
+		<label class="reading-setting-label">Theme</label>
+		<div class="reading-segment" role="radiogroup" aria-label="Theme" data-setting="theme">
+			<button type="button" role="radio" data-value="auto">Auto</button>
+			<button type="button" role="radio" data-value="light">Light</button>
+			<button type="button" role="radio" data-value="dark">Dark</button>
+			<button type="button" role="radio" data-value="sepia">Sepia</button>
+		</div>
+	</div>
+
+	<div class="reading-setting">
+		<label class="reading-setting-label">Font</label>
+		<div class="reading-segment" role="radiogroup" aria-label="Font" data-setting="font">
+			<button type="button" role="radio" data-value="serif">Serif</button>
+			<button type="button" role="radio" data-value="sans">Sans</button>
+			<button type="button" role="radio" data-value="mono">Mono</button>
+		</div>
+	</div>
+
+	<div class="reading-setting">
+		<label class="reading-setting-label" for="reading-size">
+			Size <span class="reading-setting-value" id="reading-size-value">1.00×</span>
+		</label>
+		<input
+			type="range"
+			id="reading-size"
+			min="0.85"
+			max="1.4"
+			step="0.05"
+			value="1"
+			data-setting="size"
+		/>
+	</div>
+
+	<div class="reading-setting">
+		<label class="reading-setting-label" for="reading-leading">
+			Line spacing <span class="reading-setting-value" id="reading-leading-value">1.85</span>
+		</label>
+		<input
+			type="range"
+			id="reading-leading"
+			min="1.3"
+			max="2.4"
+			step="0.05"
+			value="1.85"
+			data-setting="leading"
+		/>
+	</div>
+
+	<div class="reading-setting">
+		<label class="reading-setting-label" for="reading-tracking">
+			Letter spacing <span class="reading-setting-value" id="reading-tracking-value">0.00em</span>
+		</label>
+		<input
+			type="range"
+			id="reading-tracking"
+			min="-0.02"
+			max="0.08"
+			step="0.005"
+			value="0"
+			data-setting="tracking"
+		/>
+	</div>
+
+	<div class="reading-setting">
+		<label class="reading-setting-label" for="reading-width">
+			Width <span class="reading-setting-value" id="reading-width-value">42rem</span>
+		</label>
+		<input
+			type="range"
+			id="reading-width"
+			min="32"
+			max="58"
+			step="1"
+			value="42"
+			data-setting="width"
+		/>
+	</div>
+</div>
+
+<div
+	class="rsvp-overlay"
+	id="rsvp-overlay"
+	role="dialog"
+	aria-modal="true"
+	aria-label="Speed reader"
+	hidden
+>
+	<div class="rsvp-backdrop" id="rsvp-backdrop"></div>
+	<div class="rsvp-panel">
+		<button
+			type="button"
+			class="rsvp-close"
+			id="rsvp-close"
+			aria-label="Close speed reader"
+		>
+			<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+				<path
+					d="M6 6l12 12M18 6L6 18"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					fill="none"
+				/>
+			</svg>
+		</button>
+
+		<div class="rsvp-stage" id="rsvp-stage">
+			<div class="rsvp-guide rsvp-guide-top" aria-hidden="true"></div>
+			<div class="rsvp-word" id="rsvp-word">
+				<span class="rsvp-word-pre" id="rsvp-word-pre"></span><span
+					class="rsvp-word-pivot"
+					id="rsvp-word-pivot"
+				></span><span class="rsvp-word-post" id="rsvp-word-post"></span>
+			</div>
+			<div class="rsvp-guide rsvp-guide-bottom" aria-hidden="true"></div>
+		</div>
+
+		<div class="rsvp-progress" aria-hidden="true">
+			<div class="rsvp-progress-fill" id="rsvp-progress-fill"></div>
+		</div>
+
+		<div class="rsvp-meta">
+			<span id="rsvp-position">0 / 0</span>
+			<span id="rsvp-eta">0:00 left</span>
+		</div>
+
+		<div class="rsvp-controls">
+			<button type="button" class="rsvp-icon-button" id="rsvp-restart" aria-label="Restart">
+				<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path
+						d="M4 12a8 8 0 1 0 2.34-5.66M4 4v4h4"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						fill="none"
+					/>
+				</svg>
+			</button>
+			<button type="button" class="rsvp-icon-button" id="rsvp-back" aria-label="Back 10 words">
+				<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path
+						d="M11 6l-6 6 6 6M19 6l-6 6 6 6"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						fill="none"
+					/>
+				</svg>
+			</button>
+			<button
+				type="button"
+				class="rsvp-icon-button rsvp-play"
+				id="rsvp-play"
+				aria-label="Play"
+			>
+				<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-icon="play">
+					<path d="M7 5.5v13l11-6.5L7 5.5z" fill="currentColor" />
+				</svg>
+				<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-icon="pause" hidden>
+					<path d="M7 5h3v14H7zM14 5h3v14h-3z" fill="currentColor" />
+				</svg>
+			</button>
+			<button type="button" class="rsvp-icon-button" id="rsvp-fwd" aria-label="Forward 10 words">
+				<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path
+						d="M13 6l6 6-6 6M5 6l6 6-6 6"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						fill="none"
+					/>
+				</svg>
+			</button>
+		</div>
+
+		<div class="rsvp-wpm">
+			<label class="reading-setting-label" for="rsvp-wpm">
+				Speed <span class="reading-setting-value" id="rsvp-wpm-value">300 wpm</span>
+			</label>
+			<input type="range" id="rsvp-wpm" min="100" max="900" step="25" value="300" />
+		</div>
+
+		<p class="rsvp-hint">Space — play / pause &nbsp;·&nbsp; ← → — skip &nbsp;·&nbsp; Esc — close</p>
+	</div>
+</div>
 
 <footer class="site-footer">
 	<div class="footer-markdown">{{ footer_html | safe }}</div>

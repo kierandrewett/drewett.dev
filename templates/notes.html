@@ -2,7 +2,9 @@
 <header class="page-header">
 	<a class="back-link" href="/">← Kieran Drewett</a>
 	<h1>Notes</h1>
-	<p class="page-tagline">Things I've written down so I don't forget them.</p>
+	<p class="page-tagline">
+		Notes I keep so I don't forget things. <strong>Not a blog.</strong> Blogs are stupid.
+	</p>
 </header>
 
 <section class="content-block notes-list">
@@ -15,7 +17,7 @@
 			<a class="sticky-note" href="/notes/{{ note.slug }}">
 				<h2 class="sticky-note-title">{{ note.title }}</h2>
 				{% if note.summary %}<p class="sticky-note-summary">{{ note.summary }}</p>{% endif %}
-				{% if note.date %}<time class="sticky-note-date">{{ note.date }}</time>{% endif %}
+				{% if note.date %}<time class="sticky-note-date" datetime="{{ note.date_iso }}">{{ note.date }}</time>{% endif %}
 			</a>
 		</li>
 		{% endfor %}

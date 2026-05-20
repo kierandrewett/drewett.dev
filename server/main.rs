@@ -38,6 +38,7 @@ struct Note {
     title: String,
     summary: String,
     date: String,
+    date_iso: String,
     unlisted: bool,
     #[serde(skip_serializing)]
     html: String,
@@ -352,7 +353,7 @@ async fn fetch_all_notes(state: &AppState) -> CachedNotes {
         .map(|(slug, body)| build_note(slug, &body))
         .collect();
 
-    notes.sort_by(|a, b| b.date.cmp(&a.date).then_with(|| b.slug.cmp(&a.slug)));
+    notes.sort_by(|a, b| b.date_iso.cmp(&a.date_iso).then_with(|| b.slug.cmp(&a.slug)));
 
     CachedNotes {
         notes,
@@ -436,7 +437,8 @@ fn build_note(slug: String, raw: &str) -> Note {
         .cloned()
         .filter(|s| !s.is_empty())
         .unwrap_or_else(|| prettify_slug(&slug));
-    let date = fm.get("date").cloned().unwrap_or_default();
+    let date_iso = fm.get("date").cloned().unwrap_or_default();
+    let date = format_display_date(&date_iso);
     let summary = fm
         .get("summary")
         .cloned()
@@ -452,9 +454,19 @@ fn build_note(slug: String, raw: &str) -> Note {
         title,
         summary,
         date,
+        date_iso,
         unlisted,
         html,
     }
+}
+
+fn format_display_date(iso: &str) -> String {
+    if iso.is_empty() {
+        return String::new();
+    }
+    chrono::NaiveDate::parse_from_str(iso, "%Y-%m-%d")
+        .map(|d| d.format("%-d %B %Y").to_string())
+        .unwrap_or_else(|_| iso.to_string())
 }
 
 fn prettify_slug(slug: &str) -> String {
