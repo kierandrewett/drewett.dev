@@ -8,17 +8,19 @@
 <section class="content-block notes-list">
 	{% if notes | length == 0 %}
 	<p class="notes-empty">Nothing here yet. Check back later.</p>
-	{% else %} {% for note in notes %}
-	<article class="note-card">
-		<a class="note-card-link" href="/notes/{{ note.slug }}">
-			<div class="note-card-meta">
-				{% if note.date %}<time>{{ note.date }}</time>{% endif %}
-			</div>
-			<h2 class="note-card-title">{{ note.title }}</h2>
-			{% if note.summary %}<p class="note-card-summary">{{ note.summary }}</p>{% endif %}
-		</a>
-	</article>
-	{% endfor %} {% endif %}
+	{% else %}
+	<ul class="sticky-board">
+		{% for note in notes %}
+		<li class="sticky-note-item">
+			<a class="sticky-note" href="/notes/{{ note.slug }}">
+				<h2 class="sticky-note-title">{{ note.title }}</h2>
+				{% if note.summary %}<p class="sticky-note-summary">{{ note.summary }}</p>{% endif %}
+				{% if note.date %}<time class="sticky-note-date">{{ note.date }}</time>{% endif %}
+			</a>
+		</li>
+		{% endfor %}
+	</ul>
+	{% endif %}
 </section>
 
 <footer class="site-footer">
