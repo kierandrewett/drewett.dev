@@ -1,5 +1,5 @@
 ---
-title: Notes from a degree apprenticeship I cannot stand
+title: A degree apprenticeship I cannot stand
 date: 2026-05-20
 summary: Why no realistic pay rise would fix this job, and what I am doing instead
 ---
