@@ -214,6 +214,7 @@ html {
 	background: var(--background);
 	-webkit-text-size-adjust: 100%;
 	text-size-adjust: 100%;
+	overflow-x: clip;
 }
 
 html,
@@ -306,7 +307,6 @@ main {
 	max-width: 780px;
 	margin: 0 auto;
 	padding: 3.4rem 1.4rem 1.8rem;
-	overflow-x: auto;
 }
 
 main:has(> article.note-detail) {
