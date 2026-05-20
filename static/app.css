@@ -306,6 +306,7 @@ main {
 	max-width: 780px;
 	margin: 0 auto;
 	padding: 3.4rem 1.4rem 1.8rem;
+	overflow-x: auto;
 }
 
 main:has(> article.note-detail) {
