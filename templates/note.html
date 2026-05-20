@@ -12,6 +12,25 @@
 	<div class="note-body" id="note-body">{{ note_html | safe }}</div>
 </article>
 
+<aside class="note-toc" id="note-toc" aria-label="On this page" hidden>
+	<div class="note-toc-label">ON THIS PAGE</div>
+	<div class="note-toc-body">
+		<svg class="note-toc-spine" aria-hidden="true" focusable="false">
+			<line class="note-toc-spine-track" x1="1" y1="0" x2="1" y2="100%" />
+			<rect
+				class="note-toc-spine-active"
+				id="note-toc-spine-active"
+				x="0"
+				y="0"
+				width="2"
+				height="0"
+				rx="1"
+			/>
+		</svg>
+		<ol class="note-toc-list" id="note-toc-list"></ol>
+	</div>
+</aside>
+
 <aside class="reading-rail" id="reading-rail" aria-label="Reading tools">
 	<button
 		type="button"

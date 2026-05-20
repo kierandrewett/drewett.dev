@@ -5,27 +5,116 @@ summary: Why no realistic pay rise would fix this job, and what I am doing inste
 unlisted: true
 ---
 
-Being a degree apprentice<sup><a href="#ref-1">[1]</a></sup> at a large consultancy is, frankly, one of the worst structural traps you can walk yourself into at eighteen, and I say that as someone currently a year and a half from the other side of it. The apprenticeship pays for your degree, which means leaving is not really leaving, it is forfeiting the entire arrangement, and that single fact does most of the heavy lifting in why I am still showing up to a job I cannot stand. The pay sits at the lower end of graduate compensation, which sounds fine on paper for someone my age until you understand what is being extracted in return, and to be brutally honest no realistic pay rise would fix this one for me, the issue is not money, it is fit.
+## The trap
 
-The work is enterprise software consulting for a public-sector client, which in practice means endless bureaucracy, endless forms, endless process layers, endless meetings about absolutely nothing, and a corporate culture that insists everyone keep their camera on for the 9am standup<sup><a href="#ref-2">[2]</a></sup> because that is somehow how trust is built in a remote-first world. I am neurodivergent<sup><a href="#ref-3">[3]</a></sup>, I do not function in the morning, my natural day starts at 11am and gets going properly after lunch, and being made to perform alertness on a webcam at 9 every day is, in any honest reading of it, a low-grade form of psychological torture dressed up as "team culture", which I am not paid anywhere near enough to put up with. The work itself is the kind of mind-numbing, soul-destroying ERP<sup><a href="#ref-4">[4]</a></sup> configuration that the people doing it have somehow convinced themselves is interesting, and in my mind most of the consultants I have sat across from are some of the most frustrating, incompetent, and frankly insufferable people I have ever had the misfortune of sharing a meeting room with, the meetings themselves consisting mostly of stupid corporate updates and the occasional all-hands where some senior gets wheeled out to parade a bullshit new partnership in front of everyone, or a junior gets wheeled out to demo whatever garbage they have built in Power BI that week, none of which I want any part of.
+A degree apprentice<sup><a href="#ref-1">[1]</a></sup> at a large consultancy. A year and a half from the end.
 
-The previous project I was on was a small migration job, operationally a bit of a shitshow but staffed by a fucking brilliant team of proper nerds who would happily disappear down a rabbit hole on databases or Linux internals for the better part of an afternoon, including a team lead who, in any sane company, would have been daily-driving Linux on his work machine but was instead stuck on Windows like the rest of us thanks to the corporate IT policy on operating systems, and despite the operational mess of it all I enjoyed that project far more than what I am on now.
+The apprenticeship pays for the degree, so leaving isn't really leaving. It's forfeiting. That single fact is most of why I'm still showing up.
 
-On the subject of corporate IT, which is a rabbit hole I cannot quite resist going down for a moment, the IT departments in this corner of the industry have an almost pathological aversion to anyone running Linux, or even fucking WSL<sup><a href="#ref-5">[5]</a></sup>, on a work laptop, treating any request for it as if you have asked them to install ransomware on a domain controller, and you end up having to tear them a new one through ticket after ticket and escalation after escalation just to secure even the most minimal approval for what is, by any reasonable measure, completely standard developer tooling everywhere else in the tech industry. The fact that I, a degree apprentice with absolutely no organisational pull whatsoever, have had to fight this hard for a workflow that is the default at any company doing serious software work tells you most of what you need to know about how far behind consulting actually is, and how much unnecessary friction gets baked into the working day for anybody trying to operate with even halfway modern tooling.
+Pay sits at the lower end of graduate compensation. No realistic rise would fix it. It isn't money, it's fit.
 
-What sticks with me most about that first project, looking back, is that several people on it actually came up to me at various points to say that no, projects are not normally this bad, projects are not normally this mismanaged, projects are not normally this rough for juniors, and in my head every single time I thought the same thing back, which was that this was, if anything, the perfect level of chaos, the perfect level of calm, and the perfect level of fun, and whatever they thought was wrong with it was exactly what made it work for me. I now genuinely understand what they meant, because the project I am on currently is, in their language, hell. I knew it would not be the same as the first one, but I was not expecting it to feel quite this real, there is no room for fun, no room for playfulness, no room for the small bits of just living a life inside the working day, the whole thing is too serious, everyone involved is taking it too seriously, and it is, frankly, too much, to the point that I cannot stand another day of it.
+## The work
 
-The current project itself is the inverse of that small migration job, run competently enough but populated by the sort of petty office tyrants whose entire technical horizon stops at Windows and whatever web-based IDE their cloud hosting provider happens to expose to them in a browser tab, a well-run, soul-crushing corporate bullshit hell where everything is overly serious, nobody is on my wavelength, and the one colleague who really speaks to me only does so to ask questions I do not have the patience or the care to answer. I have come to learn that my job satisfaction tracks the people around me far more than it tracks the work itself, which is partly why I once found my old retail job, i.e. a part-time job working at a shop, more fulfilling than the job I have now. The genuinely mental part, and this is the one that gets me, is that I earned more per hour at the retail job than I currently do at the consultancy, which on its own should tell you something, particularly when you consider that the retail work was easier, less stressful, and came with the freedom to pick the shifts I actually wanted to work, whereas the corporate world expects you presentable at 9am and chained to your desk through to half five in the evening, and at some point you do find yourself asking what the bloody point of any of it actually is.
+Enterprise software consulting for a public-sector client. In practice:
 
-And it is worth saying, before anyone suggests I just ask to be moved, that you do not really have that choice in the first place. I was on the bench for several months, cracking on with certifications and perfectly content doing so, and then, entirely out of the blue and with no consultation whatsoever, I was told I had been placed on this current project, with no input from me on whether it aligned with my values, my interests, or anything else that the apprenticeship is supposed to actually be about. The assumption, as far as I can work it out, is that any meaningful say in which project you end up on is reserved for senior people, which is, on its face, fairly stupid for anyone who is meant to be developing under an apprenticeship framework in the first place. There is an additional irony here that I cannot really go into without saying more than I should, but the particular project I have been planted on, given the broader circumstances and what this apprenticeship is supposed to stand for, is in its own bleakly amusing way genuinely funny once you stop and think about it.
+- endless bureaucracy, endless forms, endless process layers
+- meetings about absolutely nothing
+- ERP<sup><a href="#ref-4">[4]</a></sup> configuration that the people doing it have somehow convinced themselves is interesting
+- a mandatory 9am standup<sup><a href="#ref-2">[2]</a></sup> with cameras on, because that is somehow how trust gets built in a remote-first world
+- all-hands where some senior gets wheeled out to parade a bullshit new partnership
+- juniors wheeled out to demo whatever garbage they have built in Power BI that week
 
-The academic side, surprisingly, is the bit I do not mind. I do not really learn anything in the lectures, and I cannot bring myself to do the assignments to any standard above bare passing, but in practice the study weeks at my university function as a free holiday away from work, where I can sit in the back of a lecture theatre half-paying attention and otherwise do whatever I want with my time, which is genuinely more freedom than I get on any working week. So I have quietly come around to them, not because the academic content is good but because they are the closest thing this arrangement offers to actual time off.
+Most of the consultants I sit across from are some of the most frustrating, incompetent, insufferable people I have ever shared a meeting room with.
 
-The one redeeming feature of the work side itself is that, in the quieter pockets of the day, I can get on with my own work, where I am building things I genuinely care about, and where I have learned that when I am left alone to do what I do, I deliver. When I am stuck in pointless bullshit meetings and forced into restrictive corporate process, you get bugger all out of me, and frankly that is on the structure rather than on me.
+## 9am
 
-Ultimately, I think I am simply not designed for the corporate world. Hundreds of thousands of people would happily kill for the job I have, cushy, laid-back, get on with the task in front of you and clock off at half five, and on paper they would be right to want it. But for me there is nothing remotely interesting about a job like this, particularly once you have spent enough time in it to realise you are running circles around most of the people you sit next to, and the whole arrangement starts to feel like being trapped inside a bubble that everybody else seems to think will quite happily sustain them for the next forty years. I cannot stomach another five minutes of it, let alone the rest of a working life.
+I am neurodivergent<sup><a href="#ref-3">[3]</a></sup>. I do not function in the morning. My natural day starts at 11am and gets going properly after lunch.
 
-Part of the reason I am going this route rather than actually walking out, if I am being honest about it, is that I would find it considerably less embarrassing to get fired than to quit, which probably sounds backwards written down but is genuinely how it sits in my head. There is a particular kind of shame attached to voluntarily leaving a graduate job at nineteen, especially one that on paper plenty of people would happily take, and quitting feels like an admission I am not really willing to make, whereas being let go would at least be something that happened to me rather than something I chose. So I am quiet quitting<sup><a href="#ref-6">[6]</a></sup> in the formal sense, doing the absolute minimum that clears the apprenticeship's assessment bar, collecting the salary, and putting everything that actually matters into projects of my own until the thing runs its course and I can walk out with the degree. I am not someone who belongs in the fucking machine, I work independently and well when left to it, and the next eighteen months are something I am counting down day by day. That probably sounds dramatic to anyone who has not had to sit through it, in which case good, it is meant to.
+Being made to perform alertness on a webcam at 9 every day is a low-grade form of psychological torture dressed up as "team culture". I am not paid anywhere near enough to put up with it.
+
+## Previous project
+
+A small migration job. Operationally a shitshow, staffed by a fucking brilliant team of proper nerds who would happily disappear down a rabbit hole on databases or Linux internals for an afternoon.
+
+The team lead would have been daily-driving Linux in any sane company. Stuck on Windows like the rest of us thanks to IT policy.
+
+Several people on it told me, at various points: *no, projects aren't normally this bad, this mismanaged, this rough for juniors*. Every time I thought the same thing back: this was working for me. Whatever they thought was wrong was exactly what made it work.
+
+I enjoyed it far more than what I am on now.
+
+## Corporate IT
+
+IT departments here have a pathological aversion to anyone running Linux, or even fucking WSL<sup><a href="#ref-5">[5]</a></sup>, on a work laptop. They treat any request for it like you've asked them to install ransomware on a domain controller.
+
+You end up tearing them a new one through ticket after ticket and escalation after escalation just to secure approval for completely standard developer tooling that everywhere else in the industry treats as the default.
+
+That I, an apprentice with no organisational pull whatsoever, have had to fight this hard for it tells you how far behind consulting is.
+
+## This project
+
+Inverse of the migration job. Run competently. Populated by petty office tyrants whose entire technical horizon stops at Windows and whatever web-based IDE their cloud hosting provider exposes in a browser tab.
+
+A well-run, soul-crushing corporate bullshit hell. Nobody is on my wavelength. The one colleague who really speaks to me only does so to ask questions I do not have the patience to answer.
+
+My job satisfaction tracks the people around me far more than the work itself.
+
+## Retail paid better
+
+I found my old part-time shop job more fulfilling than this.
+
+The mental part: I earned more per hour stacking shelves than I do now at the consultancy. The retail work was easier, less stressful, and came with the freedom to pick the shifts I actually wanted to work.
+
+Here I'm expected presentable at 9am and chained to my desk through to half five. At some point you ask what the bloody point of any of it actually is.
+
+## No say in placement
+
+Before anyone suggests I just ask to be moved: you don't really have that choice.
+
+I was on the bench for several months, cracking on with certifications, perfectly content. Then, out of the blue and with no consultation, I was told I had been placed on this project. No input from me on whether it aligned with my values, my interests, or anything else the apprenticeship is supposed to be about.
+
+The assumption seems to be that any meaningful say in placement is reserved for senior people. Fairly stupid for anyone meant to be developing under an apprenticeship framework in the first place.
+
+There's an additional irony here I can't go into without saying more than I should. Given what this apprenticeship is meant to stand for, the project I've been planted on is bleakly funny once you think about it.
+
+## University, surprisingly fine
+
+I don't learn anything in the lectures, and I can't bring myself to do the assignments above bare passing.
+
+But the study weeks function as a free holiday from work. I sit in the back of a lecture theatre, half-paying attention, and otherwise do what I want with my time. That's more freedom than I get on any working week.
+
+So I have quietly come around to them. Not because the academic content is good, but because they are the closest thing this arrangement offers to actual time off.
+
+## The quiet pockets
+
+The one redeeming feature of the work side: in the quieter pockets of the day I can get on with my own work, where I am building things I genuinely care about.
+
+When I am left alone, I deliver. When I am stuck in pointless meetings and corporate process, you get bugger all out of me. That's on the structure, not on me.
+
+## Not designed for this
+
+Hundreds of thousands of people would happily kill for the job I have. Cushy, laid-back, get on with the task and clock off at half five. On paper they would be right to want it.
+
+For me, none of it is interesting. Once you've spent enough time in it to realise you're running circles around most of the people you sit next to, the whole thing starts to feel like a bubble everybody else is happy to live in for the next forty years.
+
+I cannot stomach another five minutes of it, let alone the rest of a working life.
+
+## The plan: fired beats quit
+
+Honestly, I'd find it less embarrassing to get fired than to quit.
+
+There is a particular shame attached to voluntarily leaving a graduate job at nineteen, especially one that on paper plenty of people would happily take. Quitting feels like an admission I am not willing to make. Being let go would at least be something that happened to me, rather than something I chose.
+
+So I am quiet quitting<sup><a href="#ref-6">[6]</a></sup>, in the formal sense:
+
+- doing the absolute minimum that clears the apprenticeship's assessment bar
+- collecting the salary
+- putting everything that actually matters into projects of my own
+
+Until the thing runs its course and I can walk out with the degree.
+
+I am not someone who belongs in the fucking machine. I work independently and well when left to it. The next eighteen months are something I am counting down day by day.
+
+That probably sounds dramatic to anyone who hasn't had to sit through it. In which case good. It is meant to.
 
 ## References
 

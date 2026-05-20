@@ -949,3 +949,83 @@
 		refAnchor.after(frag);
 	}
 })();
+
+(() => {
+	const noteBody = document.getElementById("note-body");
+	const toc = document.getElementById("note-toc");
+	const tocList = document.getElementById("note-toc-list");
+	const spineActive = document.getElementById("note-toc-spine-active");
+	if (!noteBody || !toc || !tocList || !spineActive) return;
+
+	const headings = Array.from(noteBody.querySelectorAll("h2, h3"));
+	if (headings.length < 2) return;
+
+	const slugSeen = new Set();
+	function slugify(text) {
+		const base = text
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, "-")
+			.replace(/^-|-$/g, "") || "section";
+		let slug = base;
+		let i = 1;
+		while (slugSeen.has(slug)) slug = `${base}-${i++}`;
+		slugSeen.add(slug);
+		return slug;
+	}
+
+	const entries = headings.map((h) => {
+		const id = h.id || slugify(h.textContent || "");
+		h.id = id;
+		h.style.scrollMarginTop = "4rem";
+		const li = document.createElement("li");
+		if (h.tagName === "H3") li.className = "is-h3";
+		const a = document.createElement("a");
+		a.href = `#${id}`;
+		a.textContent = h.textContent || "";
+		a.dataset.tocLink = id;
+		li.appendChild(a);
+		tocList.appendChild(li);
+		return { id, heading: h, link: a };
+	});
+
+	toc.hidden = false;
+
+	let activeId = null;
+
+	function setActive(id) {
+		if (id === activeId) return;
+		activeId = id;
+		let activeLink = null;
+		for (const entry of entries) {
+			const on = entry.id === id;
+			entry.link.classList.toggle("is-active", on);
+			if (on) activeLink = entry.link;
+		}
+		if (!activeLink) return;
+
+		const tocBody = toc.querySelector(".note-toc-body");
+		const bodyRect = tocBody.getBoundingClientRect();
+		const linkRect = activeLink.getBoundingClientRect();
+		const y = linkRect.top - bodyRect.top + tocBody.scrollTop;
+		const h = linkRect.height;
+		spineActive.setAttribute("y", String(Math.max(0, Math.round(y))));
+		spineActive.setAttribute("height", String(Math.max(0, Math.round(h))));
+	}
+
+	function updateActiveOnScroll() {
+		const offset = 120;
+		let active = entries[0];
+		for (const entry of entries) {
+			const top = entry.heading.getBoundingClientRect().top;
+			if (top <= offset) active = entry;
+			else break;
+		}
+		setActive(active.id);
+	}
+
+	window.addEventListener("scroll", updateActiveOnScroll, { passive: true });
+	window.addEventListener("resize", updateActiveOnScroll);
+	requestAnimationFrame(() => {
+		requestAnimationFrame(updateActiveOnScroll);
+	});
+})();
