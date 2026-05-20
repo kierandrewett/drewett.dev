@@ -636,8 +636,19 @@
 		});
 	}
 
+	const mobileSettings = window.matchMedia("(max-width: 1080px)");
+
 	function positionSettings() {
 		if (!settingsEl || !settingsToggle) return;
+
+		if (mobileSettings.matches) {
+			// CSS owns the bottom-sheet layout; clear any inline values from a
+			// previous desktop open so they don't fight the stylesheet.
+			settingsEl.style.left = "";
+			settingsEl.style.top = "";
+			return;
+		}
+
 		const railRect = settingsToggle.getBoundingClientRect();
 		const panelWidth = settingsEl.offsetWidth;
 		const panelHeight = settingsEl.offsetHeight;

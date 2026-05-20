@@ -1800,6 +1800,16 @@ html[data-reading-theme="sepia"] {
 		transform: translateX(-50%);
 		flex-direction: row;
 	}
+
+	.reading-settings {
+		left: 0.9rem;
+		right: 0.9rem;
+		top: auto;
+		bottom: 5rem;
+		width: auto;
+		max-height: calc(100vh - 7rem);
+		overflow-y: auto;
+	}
 }
 
 .note-toc {
