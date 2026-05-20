@@ -907,10 +907,17 @@ fn render_markdown(markdown: &str) -> String {
     let parser = Parser::new_ext(markdown, options);
     let mut output = String::new();
     push_html(&mut output, parser);
-    output.replace(
-        "<a href=\"",
-        "<a target=\"_blank\" rel=\"noreferrer\" href=\"",
-    )
+    // Only mark external links as new-tab; leave anchors, relative paths,
+    // and mailto: alone so in-page footnote refs actually scroll.
+    output
+        .replace(
+            "<a href=\"http",
+            "<a target=\"_blank\" rel=\"noreferrer\" href=\"http",
+        )
+        .replace(
+            "<a href=\"//",
+            "<a target=\"_blank\" rel=\"noreferrer\" href=\"//",
+        )
 }
 
 fn title_case_tag(tag: &str) -> String {
