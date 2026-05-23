@@ -60,6 +60,10 @@ struct AppState {
     notes_local_dir: String,
     notes_cache: Arc<RwLock<Option<CachedNotes>>>,
     notes_cache_ttl: Duration,
+    pageviews_base_url: Option<String>,
+    pageviews_site_id: String,
+    pageviews_period: String,
+    pageviews_timeout: Duration,
     templates: Arc<Tera>,
 }
 
@@ -116,6 +120,17 @@ struct InitialLastfm {
     album_art: String,
 }
 
+#[derive(Serialize)]
+struct NotePageviews {
+    count: u64,
+    label: String,
+}
+
+#[derive(Deserialize)]
+struct PageviewsResponse {
+    pageviews: u64,
+}
+
 impl InitialLastfm {
     fn connecting() -> Self {
         Self {
@@ -162,6 +177,18 @@ async fn main() {
         .and_then(|v| v.parse().ok())
         .unwrap_or(content_cache_secs);
 
+    let pageviews_base_url = env::var("PAGEVIEWS_BASE_URL")
+        .ok()
+        .map(|value| value.trim().trim_end_matches('/').to_string())
+        .filter(|value| !value.is_empty());
+    let pageviews_site_id =
+        env::var("PAGEVIEWS_SITE_ID").unwrap_or_else(|_| "drewett.dev".to_string());
+    let pageviews_period = env::var("PAGEVIEWS_PERIOD").unwrap_or_else(|_| "all".to_string());
+    let pageviews_timeout_ms: u64 = env::var("PAGEVIEWS_TIMEOUT_MS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(1200);
+
     let state = Arc::new(AppState {
         client,
         content_base_url,
@@ -171,6 +198,10 @@ async fn main() {
         notes_local_dir,
         notes_cache: Arc::new(RwLock::new(None)),
         notes_cache_ttl: Duration::from_secs(notes_cache_secs),
+        pageviews_base_url,
+        pageviews_site_id,
+        pageviews_period,
+        pageviews_timeout: Duration::from_millis(pageviews_timeout_ms),
         templates: Arc::new(templates),
     });
 
@@ -573,10 +604,7 @@ async fn notes_list(State(state): State<Arc<AppState>>) -> Response {
     }
 }
 
-async fn note_detail(
-    State(state): State<Arc<AppState>>,
-    Path(slug): Path<String>,
-) -> Response {
+async fn note_detail(State(state): State<Arc<AppState>>, Path(slug): Path<String>) -> Response {
     let (content, notes) = tokio::join!(get_content(&state), get_notes(&state));
     let note = match notes.notes.iter().find(|n| n.slug == slug) {
         Some(n) => n.clone(),
@@ -586,10 +614,13 @@ async fn note_detail(
     let footer_html = render_markdown(&preprocess_markdown(&content.footer));
     let app_css_version = asset_version("static/app.css").await;
     let app_js_version = asset_version("static/app.js").await;
+    let note_pageviews_path = format!("/notes/{}", note.slug);
+    let pageviews = fetch_note_pageviews(&state, &note_pageviews_path).await;
 
     let mut context = Context::new();
     context.insert("note", &note);
     context.insert("note_html", &note.html);
+    context.insert("pageviews", &pageviews);
     context.insert("footer_html", &footer_html);
     context.insert("app_css_version", &app_css_version);
     context.insert("app_js_version", &app_js_version);
@@ -600,6 +631,42 @@ async fn note_detail(
             StatusCode::INTERNAL_SERVER_ERROR,
             &format!("template render failed: {error}"),
         ),
+    }
+}
+
+async fn fetch_note_pageviews(state: &AppState, path: &str) -> Option<NotePageviews> {
+    let base_url = state.pageviews_base_url.as_ref()?;
+    let url = format!("{}/", base_url);
+    let response = state
+        .client
+        .get(url)
+        .query(&[
+            ("site", state.pageviews_site_id.as_str()),
+            ("path", path),
+            ("period", state.pageviews_period.as_str()),
+        ])
+        .timeout(state.pageviews_timeout)
+        .send()
+        .await
+        .ok()?;
+
+    if !response.status().is_success() {
+        return None;
+    }
+
+    let payload = response.json::<PageviewsResponse>().await.ok()?;
+
+    Some(NotePageviews {
+        count: payload.pageviews,
+        label: pageviews_label(payload.pageviews),
+    })
+}
+
+fn pageviews_label(count: u64) -> String {
+    if count == 1 {
+        "1 view".to_string()
+    } else {
+        format!("{} views", count)
     }
 }
 

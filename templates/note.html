@@ -6,6 +6,10 @@
 <article class="note-detail">
 	<div class="note-detail-meta">
 		{% if note.date %}<time datetime="{{ note.date_iso }}">{{ note.date }}</time>{% endif %}
+		{% if pageviews %}
+			{% if note.date %}<span class="note-detail-meta-separator" aria-hidden="true">&middot;</span>{% endif %}
+			<span class="note-detail-pageviews" title="{{ pageviews.count }} pageviews">{{ pageviews.label }}</span>
+		{% endif %}
 	</div>
 	<h1 class="note-detail-title">{{ note.title }}</h1>
 	{% if note.summary %}<p class="note-detail-summary">{{ note.summary }}</p>{% endif %}

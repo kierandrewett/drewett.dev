@@ -25,6 +25,21 @@ Set a custom port:
 PORT=4181 cargo run
 ```
 
+### Note pageviews
+
+`/notes/:slug` can show a pageview count from the separate `pageviews` service.
+The count is hidden when the service is not configured or does not respond quickly.
+
+```bash
+PAGEVIEWS_BASE_URL=http://localhost:3000 cargo run
+```
+
+Optional settings:
+
+- `PAGEVIEWS_SITE_ID`, default `drewett.dev`
+- `PAGEVIEWS_PERIOD`, default `all`
+- `PAGEVIEWS_TIMEOUT_MS`, default `1200`
+
 ## Build
 
 ```bash

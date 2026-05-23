@@ -1026,10 +1026,18 @@ main:has(> article.note-detail) {
 }
 
 .note-detail-meta {
+	display: flex;
+	align-items: center;
+	gap: 0.45rem;
+	flex-wrap: wrap;
 	font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 	font-size: 0.78rem;
 	color: var(--color-light);
 	font-variant-numeric: tabular-nums;
+}
+
+.note-detail-meta-separator {
+	color: var(--border-strong);
 }
 
 .note-detail-title {
