@@ -22,7 +22,7 @@
 -   A [pacman-inspired CLI wrapper](https://github.com/kierandrewett/pacman) for `dnf`/`yum` on RPM-based Linux systems.
 -   [Patient Management System](https://github.com/kierandrewett/dtsp-patient-management-system) written in C# using WPF.
 -   [Nightly Flatpak releases](https://github.com/kierandrewett/firefox-nightly-flatpak) of Mozilla Firefox.
--   A [WebSocket](https://github.com/kierandrewett/lastfm-ws) for accessing real-time scrobble data from my [Last.fm](https://last.fm/user/EnderDev) profile.
+-   A [WebSocket](https://github.com/kierandrewett/lastfm-ws) for accessing real-time scrobble data from my [Last.fm](https://last.fm/user/kierandrewett) profile.
 -   My collection of [EasyEffects presets](https://github.com/kierandrewett/easyeffects-presets) I use on my machine.
 -   [Historical Last.fm data](https://github.com/kierandrewett/lastfm-data) archived and versioned in Git.
 -   [drewett.dev](https://github.com/kierandrewett/kierand.dev) is this website.

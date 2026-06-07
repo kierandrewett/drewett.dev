@@ -877,7 +877,7 @@ async fn fetch_currently_scrobbling(client: &Client) -> Result<LastfmResponse, L
         .get("https://ws.audioscrobbler.com/2.0")
         .query(&[
             ("method", "user.getrecenttracks"),
-            ("user", "EnderDev"),
+            ("user", "kierandrewett"),
             ("api_key", api_key.as_str()),
             ("format", "json"),
             ("limit", "1"),
