@@ -413,6 +413,8 @@ main:has(> article.note-detail) {
 	transform: translateY(-50%);
 	z-index: -1;
 	pointer-events: none;
+	user-select: none;
+	-webkit-user-select: none;
 }
 
 .profile-status-indicator {

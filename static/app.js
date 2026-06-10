@@ -1088,6 +1088,25 @@
 	overlay.setAttribute("aria-hidden", "true");
 	document.body.appendChild(overlay);
 
+	// Concentric corner rounding for an image mark: the mark sits PADDING
+	// outside the image, so each corner needs that much extra radius.
+	function markRadius(style) {
+		const corners = [
+			style.borderTopLeftRadius,
+			style.borderTopRightRadius,
+			style.borderBottomRightRadius,
+			style.borderBottomLeftRadius,
+		];
+
+		// Elliptical corners don't recompose into a shorthand cleanly;
+		// let those fall back to the stylesheet default.
+		if (corners.some((radius) => radius.includes(" "))) {
+			return "";
+		}
+
+		return corners.map((radius) => `calc(${radius} + ${PADDING}px)`).join(" ");
+	}
+
 	// Deterministic per-line tilt, seeded from position so the highlight
 	// doesn't jitter when the same selection is re-rendered.
 	function lineAngle(top, left) {
@@ -1102,11 +1121,40 @@
 			range.commonAncestorContainer.nodeType === Node.TEXT_NODE
 				? range.commonAncestorContainer.parentNode
 				: range.commonAncestorContainer;
-		const walker = document.createTreeWalker(ancestor, NodeFilter.SHOW_TEXT, null);
+		const walker = document.createTreeWalker(
+			ancestor,
+			NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+			null
+		);
 		let node;
 
 		while ((node = walker.nextNode())) {
 			if (!range.intersectsNode(node)) {
+				continue;
+			}
+
+			// Images have no text nodes, so give them their own highlight
+			// rect, following the image's own corner rounding. Skip
+			// unselectable ones to match the native selection.
+			if (node.nodeType === Node.ELEMENT_NODE) {
+				if (node.tagName === "IMG") {
+					const style = getComputedStyle(node);
+
+					if (style.userSelect !== "none") {
+						const rect = node.getBoundingClientRect();
+
+						if (rect.width > 2 && rect.height > 2) {
+							rects.push({
+								left: rect.left,
+								top: rect.top,
+								width: rect.width,
+								height: rect.height,
+								radius: markRadius(style),
+							});
+						}
+					}
+				}
+
 				continue;
 			}
 
@@ -1123,6 +1171,11 @@
 
 			// Trim trailing whitespace so the marker doesn't overshoot the text.
 			const text = nodeRange.toString();
+
+			if (!text.trim()) {
+				continue;
+			}
+
 			const trimmedLength = text.trimEnd().length;
 
 			if (trimmedLength < text.length) {
@@ -1151,9 +1204,13 @@
 
 	// Group rects by line, drop the sliver rects browsers emit for line-end
 	// whitespace, and merge each horizontally-contiguous run into one rect.
-	function mergeLineRects(rects) {
+	// Image marks carry their own corner radius and stay out of the merge.
+	function mergeLineRects(allRects) {
+		const imageMarks = allRects.filter((rect) => rect.radius !== undefined);
+		const rects = allRects.filter((rect) => rect.radius === undefined);
+
 		if (rects.length < 2) {
-			return rects;
+			return [...imageMarks, ...rects];
 		}
 
 		const sorted = [...rects].sort((a, b) =>
@@ -1197,6 +1254,12 @@
 			}
 
 			for (const cluster of clusters) {
+				// Keep lone rects as-is so image marks hold their radius.
+				if (cluster.length === 1) {
+					merged.push(cluster[0]);
+					continue;
+				}
+
 				const left = Math.min(...cluster.map((rect) => rect.left));
 				const top = Math.min(...cluster.map((rect) => rect.top));
 
@@ -1209,7 +1272,7 @@
 			}
 		}
 
-		return merged;
+		return [...imageMarks, ...merged];
 	}
 
 	function render() {
@@ -1235,6 +1298,11 @@
 			// Default transform-origin (center) matches the old SVG
 			// rotate-about-center behaviour.
 			highlight.style.transform = `rotate(${lineAngle(rect.top, rect.left)}deg)`;
+
+			if (rect.radius) {
+				highlight.style.borderRadius = rect.radius;
+			}
+
 			overlay.appendChild(highlight);
 		}
 	}
