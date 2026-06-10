@@ -248,6 +248,35 @@ strong {
 	background: var(--selection);
 }
 
+/* Hand-drawn highlighter selection, drawn onto a fixed overlay by app.js.
+   The class is only added on fine-pointer devices with JS running, so the
+   native selection stays visible everywhere else. */
+html.fancy-selection ::selection {
+	background: transparent;
+	color: inherit;
+}
+
+/* Field-internal selections aren't reachable via window.getSelection(),
+   so keep the native highlight there. */
+html.fancy-selection input::selection,
+html.fancy-selection textarea::selection {
+	background: var(--selection);
+}
+
+#selection-overlay {
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 110;
+}
+
+#selection-overlay div {
+	position: absolute;
+	background: color-mix(in srgb, var(--link) 16%, transparent);
+	border-radius: 16px;
+	corner-shape: squircle;
+}
+
 noscript {
 	display: none;
 }

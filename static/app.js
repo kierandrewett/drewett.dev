@@ -1065,3 +1065,194 @@
 		requestAnimationFrame(updateActiveOnScroll);
 	});
 })();
+
+(() => {
+	// Hand-drawn highlighter selection. The native selection is made
+	// transparent in CSS (html.fancy-selection) and redrawn as one squircle,
+	// slightly-rotated rect per selected line on a fixed overlay. The marks
+	// are divs rather than SVG so corner-shape: squircle applies, matching
+	// the card surfaces.
+	const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+
+	if (!finePointer.matches || !("replaceChildren" in document.body)) {
+		return;
+	}
+
+	const MAX_ANGLE = 0.2;
+	const PADDING = 4;
+
+	document.documentElement.classList.add("fancy-selection");
+
+	const overlay = document.createElement("div");
+	overlay.id = "selection-overlay";
+	overlay.setAttribute("aria-hidden", "true");
+	document.body.appendChild(overlay);
+
+	// Deterministic per-line tilt, seeded from position so the highlight
+	// doesn't jitter when the same selection is re-rendered.
+	function lineAngle(top, left) {
+		const seed = Math.round(top * 3.7) * 997 + Math.round(left * 0.4);
+		const value = Math.sin(seed * 2.3999632) * 43758.5453123;
+		return ((value - Math.floor(value)) * 2 - 1) * MAX_ANGLE;
+	}
+
+	function getSelectionRects(range) {
+		const rects = [];
+		const ancestor =
+			range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+				? range.commonAncestorContainer.parentNode
+				: range.commonAncestorContainer;
+		const walker = document.createTreeWalker(ancestor, NodeFilter.SHOW_TEXT, null);
+		let node;
+
+		while ((node = walker.nextNode())) {
+			if (!range.intersectsNode(node)) {
+				continue;
+			}
+
+			const nodeRange = document.createRange();
+			nodeRange.selectNodeContents(node);
+
+			if (node === range.startContainer) {
+				nodeRange.setStart(node, range.startOffset);
+			}
+
+			if (node === range.endContainer) {
+				nodeRange.setEnd(node, range.endOffset);
+			}
+
+			// Trim trailing whitespace so the marker doesn't overshoot the text.
+			const text = nodeRange.toString();
+			const trimmedLength = text.trimEnd().length;
+
+			if (trimmedLength < text.length) {
+				const endOffset =
+					(node === range.endContainer ? range.endOffset : node.textContent.length) -
+					(text.length - trimmedLength);
+
+				if (endOffset > nodeRange.startOffset) {
+					nodeRange.setEnd(node, endOffset);
+				}
+			}
+
+			if (nodeRange.collapsed) {
+				continue;
+			}
+
+			for (const rect of nodeRange.getClientRects()) {
+				if (rect.width > 2 && rect.height > 2) {
+					rects.push(rect);
+				}
+			}
+		}
+
+		return mergeLineRects(rects);
+	}
+
+	// Group rects by line, drop the sliver rects browsers emit for line-end
+	// whitespace, and merge each horizontally-contiguous run into one rect.
+	function mergeLineRects(rects) {
+		if (rects.length < 2) {
+			return rects;
+		}
+
+		const sorted = [...rects].sort((a, b) =>
+			Math.abs(a.top - b.top) < 3 ? a.left - b.left : a.top - b.top
+		);
+		const merged = [];
+		let index = 0;
+
+		while (index < sorted.length) {
+			let next = index + 1;
+
+			while (next < sorted.length && sorted[next].top - sorted[index].top < 4) {
+				next++;
+			}
+
+			const line = sorted.slice(index, next);
+			index = next;
+
+			if (line.length === 1) {
+				merged.push(line[0]);
+				continue;
+			}
+
+			const last = line[line.length - 1];
+			const rest = line.slice(0, -1);
+			const averageWidth = rest.reduce((sum, rect) => sum + rect.width, 0) / rest.length;
+			const kept =
+				last.width < averageWidth * 0.35 && last.width < last.height * 0.5 ? rest : line;
+
+			const clusters = [[kept[0]]];
+
+			for (let k = 1; k < kept.length; k++) {
+				const cluster = clusters[clusters.length - 1];
+				const previous = cluster[cluster.length - 1];
+
+				if (kept[k].left - (previous.left + previous.width) > 20) {
+					clusters.push([kept[k]]);
+				} else {
+					cluster.push(kept[k]);
+				}
+			}
+
+			for (const cluster of clusters) {
+				const left = Math.min(...cluster.map((rect) => rect.left));
+				const top = Math.min(...cluster.map((rect) => rect.top));
+
+				merged.push({
+					left,
+					top,
+					width: Math.max(...cluster.map((rect) => rect.left + rect.width)) - left,
+					height: Math.max(...cluster.map((rect) => rect.top + rect.height)) - top,
+				});
+			}
+		}
+
+		return merged;
+	}
+
+	function render() {
+		renderQueued = false;
+		overlay.replaceChildren();
+
+		const selection = window.getSelection();
+
+		if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
+			return;
+		}
+
+		for (const rect of getSelectionRects(selection.getRangeAt(0))) {
+			if (rect.width < 2 || rect.height < 2) {
+				continue;
+			}
+
+			const highlight = document.createElement("div");
+			highlight.style.left = `${rect.left - PADDING}px`;
+			highlight.style.top = `${rect.top - PADDING * 0.5}px`;
+			highlight.style.width = `${rect.width + PADDING * 2}px`;
+			highlight.style.height = `${rect.height + PADDING}px`;
+			// Default transform-origin (center) matches the old SVG
+			// rotate-about-center behaviour.
+			highlight.style.transform = `rotate(${lineAngle(rect.top, rect.left)}deg)`;
+			overlay.appendChild(highlight);
+		}
+	}
+
+	let renderQueued = false;
+
+	function queueRender() {
+		if (renderQueued) {
+			return;
+		}
+
+		renderQueued = true;
+		requestAnimationFrame(render);
+	}
+
+	document.addEventListener("selectionchange", queueRender);
+	// The overlay is fixed but the rects are viewport-relative, so scrolling
+	// with an active selection needs a redraw to keep them aligned.
+	window.addEventListener("scroll", queueRender, { passive: true });
+	window.addEventListener("resize", queueRender, { passive: true });
+})();
