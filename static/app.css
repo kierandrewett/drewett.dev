@@ -227,6 +227,8 @@ body {
 	color: var(--text);
 	font-family: "Instrument Sans", "Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont,
 		"Segoe UI", sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
 h1,
