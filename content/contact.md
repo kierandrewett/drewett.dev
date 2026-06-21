@@ -1,3 +1,4 @@
 - [kieran@drewett.dev](mailto:kieran@drewett.dev) <sup>(personal)</sup>
-- [kieran@dothq.org](mailto:kieran@dothq.org) <sup>(business)</sup>
+- [k@cwd.dev](mailto:k@cwd.dev) <sup>(business)</sup>
+- [kieran@dothq.org](mailto:kieran@dothq.org) <sup>(Dot HQ)</sup>
 - [kieran@linux.com](mailto:kieran@linux.com) 
