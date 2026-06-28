@@ -1,5 +1,5 @@
 ---
-title: The Friction Manifesto
+title: The Sticking Door
 date: 2026-06-27
 summary: A manifesto for work that gets out of the way.
 ---
@@ -12,49 +12,49 @@ The Teams call that should have been a message. The ticket you chase for a week 
 
 The thing you need is buried in SharePoint, or trapped behind a half-hour slot in someone's calendar next Tuesday. None of it is the work. All of it slows the work down.
 
-Most people stop noticing. They work around the squeak, the form, the delay, the meeting. I have spent enough time on the wrong side of it to stop being polite.
+Most people stop noticing: they work around the squeak, the form, the delay, the meeting. I have spent enough time on the wrong side of it to stop being polite.
 
-It is expensive too. Interrupt hard work and it takes about twenty-five minutes to get properly back into it.<sup><a href="#ref-1">[1]</a></sup>
+It is expensive too: interrupt hard work and it takes about twenty-five minutes to get properly back into it.<sup><a href="#ref-1">[1]</a></sup>
 
 Do that all day and you get the modern office: busy, tired, and mostly checked out.<sup><a href="#ref-2">[2]</a></sup>
 
-Most of it was someone's decision. A form. A rule. A sign-off. Nobody removed it, so everyone else learned to live around it.
+Most of it was someone's decision. A form, a rule, a sign-off. Nobody removed it, so everyone else learned to live around it.
 
 I do not want to.
 
 ## Leave things better than you found them
 
-The job is to make things simpler. Leave every system, process, or meeting cleaner than you found it.
+The job is to make things simpler: leave every system, process, or meeting cleaner than you found it.
 
-If someone spends every Tuesday copying numbers between systems, the question is not how to make them faster. It is why a person is doing it at all.
+If someone spends every Tuesday copying numbers between two systems, the question is not how to make them faster. It is why a person is doing it at all.
 
-Repetitive work piles up until half the week is maintenance nobody chose. Even Google SRE treats that as a limit: keep toil under half of anyone's time.<sup><a href="#ref-3">[3]</a></sup>
+Repetitive work piles up until half the week is maintenance nobody chose. Even Google's SRE teams treat that as a hard limit: keep toil under half of anyone's time.<sup><a href="#ref-3">[3]</a></sup>
 
 ## Give me the problem
 
 The worst instruction is "have a look into this." Look into what? By when? What would done look like?
 
-Give a sharp person a clear, hard problem and they will disappear into it. Give them a vague one and they stall, because there is nothing to start on.
+Give a sharp person a clear, hard problem and they vanish into it. Give them a vague one and they stall, because there is nothing to push against.
 
-Clear goals beat "do your best" in study after study.<sup><a href="#ref-4">[4]</a></sup> Vague work is a manager handing you their job without saying what it is.
+Clear goals beat "do your best" in study after study.<sup><a href="#ref-4">[4]</a></sup> A vague brief is a manager handing you their job without admitting that is what they are doing.
 
-Work also needs an owner. When a job belongs to everyone, it belongs to no one, and people do less when nobody can see their part.<sup><a href="#ref-5">[5]</a></sup>
+Work needs an owner, too. When a job belongs to everyone it belongs to no one, and people do less when nobody can see their part.<sup><a href="#ref-5">[5]</a></sup>
 
 ## Keep decisions close to the work
 
-Most bad process is a decision moved too far away from the work.
+Most bad process is a decision made too far from the work.
 
-The person with context writes a ticket for someone without it, who asks for a meeting to recover it. By the time permission arrives, the ten-minute fix has become a project.
+Someone with the context writes a ticket for someone without it, who calls a meeting to recover it. By the time permission arrives, the ten-minute fix has become a project.
 
-Put the decision where the knowledge is. If you trust someone with the result, trust them with the small choices needed to get there.
+Put the decision where the knowledge is. If you trust someone with the result, trust them with the small choices that get there.
 
 ## Protect focus
 
-You sit down, everything goes quiet, and three hours vanish. The hard part is done. Psychologists call it flow.<sup><a href="#ref-6">[6]</a></sup>
+You sit down, the noise drops away, and three hours vanish. The hard part is done. Psychologists call it flow.<sup><a href="#ref-6">[6]</a></sup>
 
-It is where the good work happens, and it is easy to wreck. Most developers say recovering from interruptions is a serious problem.<sup><a href="#ref-7">[7]</a></sup>
+It is where the good work happens, and it is easy to wreck. Most developers say recovering from an interruption is a serious problem.<sup><a href="#ref-7">[7]</a></sup>
 
-A wall-to-wall calendar is a broken week, not a status symbol. Every meeting and every "quick question" should have to be worth the damage. Most are not.
+A wall-to-wall calendar is a broken week, not a badge of honour. Every meeting and every "quick question" should have to earn the damage it does. Most cannot.
 
 Write things down. Work async by default. Treat a live meeting as the exception, not the reflex.
 
@@ -64,79 +64,71 @@ You spent weeks hiring this person. Then on day one you hand them a locked-down 
 
 A capable adult should not need permission to fix the obvious thing or install the normal tools of their job.
 
-Being hired for your judgement and then treated like you cannot be trusted with a browser extension is insulting. Make a sharp person ask permission to think and you are paying them to stop.
+Hire someone for their judgement, then treat them like they cannot be trusted with a browser extension, and you are paying them to stop thinking.
+
+Developers want their own setup because they work better with tools they chose and know, not because they are precious about it. Fighting your tools is one of the things that measurably slows you down.<sup><a href="#ref-12">[12]</a></sup>
+
+Move someone from a tuned machine onto a sluggish remote desktop and watch their output collapse. Then everyone wonders why they seem slower.
 
 Low control over your own work is linked to worse health over time.<sup><a href="#ref-8">[8]</a></sup>
 
-## Build something real
+I have spent years removing the friction between me and my work. Do not spend my first week putting it back.
 
-Some arguments run for weeks on paper and end in minutes once someone builds the thing.
+## Build it, then judge what shipped
 
-Build something rough first and let it answer the question, because working software has always told you more than a document can.<sup><a href="#ref-9">[9]</a></sup>
+Some arguments run for weeks on paper and end in minutes once someone builds the thing. Build a rough version first and let it answer the question; working software has always told you more than a document can.<sup><a href="#ref-9">[9]</a></sup>
 
-Meetings are fine occasionally and terrible as the default. Unnecessary ones cost American business an estimated quarter of a trillion dollars a year.<sup><a href="#ref-10">[10]</a></sup>
+Meetings are fine occasionally and dismal as the default. Unnecessary ones cost American business an estimated quarter of a trillion dollars a year.<sup><a href="#ref-10">[10]</a></sup>
 
-Build the thing and show it to people instead of making a slideshow about it.
+So build the thing and show it to people, instead of making a slideshow about it. And then judge what comes out, not how busy it looked along the way.
 
-## Judge output, not theatre
+A full calendar, a green Slack dot, a camera-on stand-up, a tidy Jira board: none of it means anything if nobody shipped.
 
-Do not reward people for looking busy.
-
-A full calendar, a green Slack dot, a camera-on stand-up, and a perfect Jira board mean nothing if nobody shipped.
-
-Show the diff, the prototype, the decision, the fixed bug, the customer using it, not a deck explaining that a workstream is amber.
+Show the diff, the prototype, the fixed bug, the customer actually using it, rather than a deck explaining that a workstream is amber.
 
 ## The best idea should win
 
 A good idea does not care about job titles. The newest person can be right and the founder can be wrong.
 
-People have to feel safe enough to say so. That is what the best teams have in common: people can speak up, admit mistakes, and say "I think this is wrong."<sup><a href="#ref-11">[11]</a></sup>
+People have to feel safe enough to say so. It is what the best teams have in common: they can speak up, admit mistakes, and say "I think this is wrong."<sup><a href="#ref-11">[11]</a></sup>
 
 A colleague finding the flaw on Tuesday is cheap. A customer finding it in production on Friday night is not.
-
-## Let people use their own tools
-
-Developers want their own setup because they work better with tools they chose and know, not because they are being fussy. Fighting tools is one of the things that slows developers down.<sup><a href="#ref-12">[12]</a></sup>
-
-Move someone from a tuned machine onto a sluggish remote desktop and watch their output collapse. Then everyone wonders why they seem slower.
-
-I have spent years removing friction between me and my work. Do not spend my first week putting it back.
 
 ## Make things, don't just use them
 
 I want to build the thing, not get good at clicking buttons in someone else's software.
 
-There is a path where you become the expert in some vendor product, fluent in menus you did not design, and never make anything of your own; I want no part of it.
+There is a path where you become the expert in some vendor product, fluent in menus you did not design, and never make anything of your own. I want no part of it.
 
-Progress matters. It is the biggest day-to-day motivator at work, ahead of money or praise.<sup><a href="#ref-13">[13]</a></sup> Managers in the same research ranked it last.
+Progress is the point: it is the biggest day-to-day motivator at work, ahead of money or praise,<sup><a href="#ref-13">[13]</a></sup> and the managers in the same research ranked it last.
 
-That is how you get pizza lunches for morale while the person who shipped the important fix gets "nice work" buried in chat.
+That gap is how you end up with pizza lunches for morale while the person who shipped the fix that mattered gets "nice work" buried in a chat thread.
 
 ## Real belonging
 
-For some people, the social side of work just runs itself. Others spend the Monday chat trying to find a way in and never quite manage it.
+For some people the social side of work runs itself. Others spend the Monday chat looking for a way in and never quite find one.
 
-A workplace either makes room for the second kind of person or it does not, and you can tell quickly.
+A workplace either makes room for the second kind of person or it does not, and you can tell which very quickly.
 
-Real belonging is not a mug that says "bring your whole self to work." It is a place making room for how you work without making you ask three times in writing.
+Real belonging is not a mug that says "bring your whole self to work." It is a place that makes room for how you work without making you ask three times in writing.
 
-In the UK, only about three in ten autistic people are in work, against around eight in ten non-disabled people.<sup><a href="#ref-14">[14]</a></sup> A lot of that gap is unwillingness to adjust.
+In the UK, only about three in ten autistic people are in work, against roughly eight in ten non-disabled people.<sup><a href="#ref-14">[14]</a></sup> A lot of that gap is simply an unwillingness to adjust.
 
-When two people who think differently misunderstand each other, the blame usually lands on the unusual one. The evidence says the misunderstanding goes both ways.<sup><a href="#ref-15">[15]</a></sup>
+When two people who think differently misunderstand each other, the blame usually lands on the unusual one. The evidence says the misunderstanding runs both ways.<sup><a href="#ref-15">[15]</a></sup>
 
-Fake inclusion is worse than none. Once people see the gap between the words and the reality, they trust the place less than if it had said nothing.<sup><a href="#ref-16">[16]</a></sup>
+Fake inclusion is worse than none. Once people see the gap between the words and the reality, they trust the place less than if it had said nothing at all.<sup><a href="#ref-16">[16]</a></sup>
 
 ## AI, used well, removes friction
 
-I use AI every day, and I judge it the same way I judge any other tool here: does it make the work easier, clearer, or faster?
+I use AI every day, and I judge it the way I judge any other tool here: does it make the work easier, clearer, or faster?
 
-When it does, it clears dull work like boilerplate, comparison, summarising, and first drafts; in one trial, developers with an AI assistant finished about 55% faster.<sup><a href="#ref-17">[17]</a></sup>
+When it does, it clears the dull work: boilerplate, comparison, summaries, first drafts. In one trial, developers with an AI assistant finished about 55% faster.<sup><a href="#ref-17">[17]</a></sup>
 
-Blank screens are friction too, so asking for a rough version, hating half of it, and editing from there is still movement.
+A blank screen is friction too. Asking for a rough version, hating half of it, and editing from there is still movement.
 
-The catch is that it does not think for you, and it has no taste or judgement; ask a vague question and it returns a vague answer wearing a suit.
+The catch is that it does not think for you, and if you ask it a vague question you get a vague answer straight back.
 
-Make it grind through the boring part, then make a human decide what survives; used like that it removes friction, and used instead of thought it multiplies slop.
+Make it grind through the boring part, then let a human decide what survives, and it removes friction. Use it instead of thinking, and it just makes more slop, faster.
 
 ## What I would actually build
 
@@ -146,7 +138,7 @@ Work arrives as a clear problem with your name on it. It is quiet enough to thin
 
 When people disagree, you build the thing and look. Trust is the default. Permission is the exception.
 
-The evidence points the same way: in one randomised trial, home working raised output and roughly halved quitting.<sup><a href="#ref-18">[18]</a></sup> The friction was not holding the work together. It was slowing it down.
+The evidence points the same way. In one randomised trial, home working raised output and roughly halved quitting.<sup><a href="#ref-18">[18]</a></sup> The friction was never holding the work together. It was only ever slowing it down.
 
 I am not spending forty years being bored to death by process nobody can be bothered to fix. I would rather build the alternative.
 
@@ -156,7 +148,7 @@ You have met this door.
 
 The kitchen door that catches. The side gate everyone lifts and shoves without thinking. It annoyed people for a week. Then it became part of the house.
 
-Most work friction is that door. It is why you reach Friday, exhausted, and still cannot point to one thing you made.
+Most work friction is that door. It is why you reach Friday exhausted and still cannot point to one thing you made.
 
 An engineer is the person who still hears the squeak and turns up with the oil. I would rather keep doing that than slowly go deaf to it.
 
