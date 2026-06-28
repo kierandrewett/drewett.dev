@@ -1,7 +1,7 @@
 ---
 title: The Sticking Door
 date: 2026-06-27
-summary: On clearing everything that stands between you and the work.
+summary: The case against everything that gets between you and the work.
 ---
 
 > The work is hard enough. Everything around it should get out of the way.
