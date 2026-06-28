@@ -4,8 +4,6 @@ date: 2026-06-27
 summary: The case against everything that gets between you and the work.
 ---
 
-> The work is hard enough. Everything around it should get out of the way.
-
 Friction is anything between you and the work.
 
 The Teams call that should have been a message. The ticket you chase for a week to install normal software. The stand-up where eight people confirm nothing has changed.
