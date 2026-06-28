@@ -337,7 +337,14 @@ async fn fetch_remote_notes(client: &Client, index_url: &str) -> Vec<(String, St
         }
         let client = client.clone();
         set.spawn(async move {
-            let body = client.get(&download_url).send().await.ok()?.text().await.ok()?;
+            let body = client
+                .get(&download_url)
+                .send()
+                .await
+                .ok()?
+                .text()
+                .await
+                .ok()?;
             let slug = name.trim_end_matches(".md").to_string();
             Some((slug, body))
         });
@@ -374,22 +381,47 @@ async fn fetch_local_notes(dir: &str) -> Vec<(String, String)> {
 }
 
 async fn fetch_all_notes(state: &AppState) -> CachedNotes {
-    let mut raw = fetch_remote_notes(&state.client, &state.notes_index_url).await;
-    if raw.is_empty() {
-        raw = fetch_local_notes(&state.notes_local_dir).await;
-    }
+    let (remote, local) = tokio::join!(
+        fetch_remote_notes(&state.client, &state.notes_index_url),
+        fetch_local_notes(&state.notes_local_dir)
+    );
+    let raw = merge_note_sources(remote, local, cfg!(debug_assertions));
 
     let mut notes: Vec<Note> = raw
         .into_iter()
         .map(|(slug, body)| build_note(slug, &body))
         .collect();
 
-    notes.sort_by(|a, b| b.date_iso.cmp(&a.date_iso).then_with(|| b.slug.cmp(&a.slug)));
+    notes.sort_by(|a, b| {
+        b.date_iso
+            .cmp(&a.date_iso)
+            .then_with(|| b.slug.cmp(&a.slug))
+    });
 
     CachedNotes {
         notes,
         fetched_at: Instant::now(),
     }
+}
+
+fn merge_note_sources(
+    remote: Vec<(String, String)>,
+    local: Vec<(String, String)>,
+    prefer_local: bool,
+) -> Vec<(String, String)> {
+    let mut by_slug = HashMap::new();
+
+    let (first, second) = if prefer_local {
+        (remote, local)
+    } else {
+        (local, remote)
+    };
+
+    for (slug, body) in first.into_iter().chain(second) {
+        by_slug.insert(slug, body);
+    }
+
+    by_slug.into_iter().collect()
 }
 
 async fn get_notes(state: &AppState) -> CachedNotes {
@@ -1056,4 +1088,59 @@ fn bytes_response(
 
 fn plain_error(status: StatusCode, message: &str) -> Response {
     (status, message.to_string()).into_response()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn note_source(slug: &str, body: &str) -> (String, String) {
+        (slug.to_string(), body.to_string())
+    }
+
+    #[test]
+    fn merge_note_sources_prefers_local_versions_for_debug_builds() {
+        let merged = merge_note_sources(
+            vec![
+                note_source("shared", "remote"),
+                note_source("remote-only", "remote"),
+            ],
+            vec![
+                note_source("shared", "local"),
+                note_source("local-only", "local"),
+            ],
+            true,
+        );
+        let by_slug: HashMap<_, _> = merged.into_iter().collect();
+
+        assert_eq!(by_slug.get("shared").map(String::as_str), Some("local"));
+        assert_eq!(
+            by_slug.get("remote-only").map(String::as_str),
+            Some("remote")
+        );
+        assert_eq!(by_slug.get("local-only").map(String::as_str), Some("local"));
+    }
+
+    #[test]
+    fn merge_note_sources_prefers_remote_versions_for_release_builds() {
+        let merged = merge_note_sources(
+            vec![
+                note_source("shared", "remote"),
+                note_source("remote-only", "remote"),
+            ],
+            vec![
+                note_source("shared", "local"),
+                note_source("local-only", "local"),
+            ],
+            false,
+        );
+        let by_slug: HashMap<_, _> = merged.into_iter().collect();
+
+        assert_eq!(by_slug.get("shared").map(String::as_str), Some("remote"));
+        assert_eq!(
+            by_slug.get("remote-only").map(String::as_str),
+            Some("remote")
+        );
+        assert_eq!(by_slug.get("local-only").map(String::as_str), Some("local"));
+    }
 }
