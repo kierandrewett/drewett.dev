@@ -1,7 +1,7 @@
 ---
 title: The Sticking Door
 date: 2026-06-27
-summary: A manifesto for work that gets out of the way.
+summary: On clearing everything that stands between you and the work.
 ---
 
 > The work is hard enough. Everything around it should get out of the way.
