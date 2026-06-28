@@ -148,7 +148,7 @@ The evidence points the same way: in one randomised trial, home working raised o
 
 I am not spending forty years being bored to death by process nobody can be bothered to fix. I would rather build the alternative.
 
----
+## The sticking door
 
 You have met this door.
 
