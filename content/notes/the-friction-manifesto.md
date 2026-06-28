@@ -64,17 +64,17 @@ A capable adult should not need permission to fix the obvious thing or install t
 
 Being hired for your judgement and then treated like you cannot be trusted with a browser extension is insulting. Make a sharp person ask permission to think and you are paying them to stop.
 
-This is not fluffy. Low control over your own work is linked to worse health over time.<sup><a href="#ref-8">[8]</a></sup>
+Low control over your own work is linked to worse health over time.<sup><a href="#ref-8">[8]</a></sup>
 
 ## Build something real
 
 Some arguments run for weeks on paper and end in minutes once someone builds the thing.
 
-Build something rough first. Let it answer the question. Working software has always told you more than a document can.<sup><a href="#ref-9">[9]</a></sup>
+Build something rough first and let it answer the question, because working software has always told you more than a document can.<sup><a href="#ref-9">[9]</a></sup>
 
 Meetings are fine occasionally and terrible as the default. Unnecessary ones cost American business an estimated quarter of a trillion dollars a year.<sup><a href="#ref-10">[10]</a></sup>
 
-Build the thing. Show that instead of a slideshow about it.
+Build the thing and show it to people instead of making a slideshow about it.
 
 ## Judge output, not theatre
 
@@ -82,7 +82,7 @@ Do not reward people for looking busy.
 
 A full calendar, a green Slack dot, a camera-on stand-up, and a perfect Jira board mean nothing if nobody shipped.
 
-Show the diff, the prototype, the decision, the fixed bug, the customer using it. Not a deck explaining that a workstream is amber.
+Show the diff, the prototype, the decision, the fixed bug, the customer using it, not a deck explaining that a workstream is amber.
 
 ## The best idea should win
 
@@ -94,7 +94,7 @@ A colleague finding the flaw on Tuesday is cheap. A customer finding it in produ
 
 ## Let people use their own tools
 
-Developers want their own setup because they work better with tools they chose and know. It is not fussiness. Fighting tools is one of the things that slows developers down.<sup><a href="#ref-12">[12]</a></sup>
+Developers want their own setup because they work better with tools they chose and know, not because they are being fussy. Fighting tools is one of the things that slows developers down.<sup><a href="#ref-12">[12]</a></sup>
 
 Move someone from a tuned machine onto a sluggish remote desktop and watch their output collapse. Then everyone wonders why they seem slower.
 
@@ -104,7 +104,7 @@ I have spent years removing friction between me and my work. Do not spend my fir
 
 I want to build the thing, not get good at clicking buttons in someone else's software.
 
-There is a path where you become the expert in some vendor product, fluent in menus you did not design, and never make anything of your own. I want no part of it.
+There is a path where you become the expert in some vendor product, fluent in menus you did not design, and never make anything of your own; I want no part of it.
 
 Progress matters. It is the biggest day-to-day motivator at work, ahead of money or praise.<sup><a href="#ref-13">[13]</a></sup> Managers in the same research ranked it last.
 
@@ -114,7 +114,7 @@ That is how you get pizza lunches for morale while the person who shipped the im
 
 For some people, the social side of work just runs itself. Others spend the Monday chat trying to find a way in and never quite manage it.
 
-A workplace either makes room for the second kind of person or it does not. You can tell quickly.
+A workplace either makes room for the second kind of person or it does not, and you can tell quickly.
 
 Real belonging is not a mug that says "bring your whole self to work." It is a place making room for how you work without making you ask three times in writing.
 
@@ -126,17 +126,15 @@ Fake inclusion is worse than none. Once people see the gap between the words and
 
 ## AI, used well, removes friction
 
-I use AI every day. It is not magic, sin, or a personality. It is a tool.
+I use AI every day, and I judge it the same way I judge any other tool here: does it make the work easier, clearer, or faster?
 
-It gets the same test as everything else here: did it make the work easier, clearer, or faster? If not, it is friction with a logo.
+When it does, it clears dull work like boilerplate, comparison, summarising, and first drafts; in one trial, developers with an AI assistant finished about 55% faster.<sup><a href="#ref-17">[17]</a></sup>
 
-Used well, it clears dull work: boilerplate, comparison, summarising, first drafts. That is not hand-waving; in one trial, developers with an AI assistant finished about 55% faster.<sup><a href="#ref-17">[17]</a></sup>
+Blank screens are friction too, so asking for a rough version, hating half of it, and editing from there is still movement.
 
-Blank screens are friction too. Ask for a rough version, hate half of it, and you are still moving.
+The catch is that it does not think for you, and it has no taste or judgement; ask a vague question and it returns a vague answer wearing a suit.
 
-But the tool does not think for you. It has no taste and no judgement. Ask a vague question and it returns a vague answer wearing a suit.
-
-Make it grind through the boring part. Then make a human decide what survives. Used like that, it removes friction. Used instead of thought, it multiplies slop.
+Make it grind through the boring part, then make a human decide what survives; used like that it removes friction, and used instead of thought it multiplies slop.
 
 ## What I would actually build
 
@@ -146,7 +144,7 @@ Work arrives as a clear problem with your name on it. It is quiet enough to thin
 
 When people disagree, you build the thing and look. Trust is the default. Permission is the exception.
 
-This is not just me wanting a nicer week. In one randomised trial, home working raised output and roughly halved quitting.<sup><a href="#ref-18">[18]</a></sup> The friction was not holding the work together. It was slowing it down.
+The evidence points the same way: in one randomised trial, home working raised output and roughly halved quitting.<sup><a href="#ref-18">[18]</a></sup> The friction was not holding the work together. It was slowing it down.
 
 I am not spending forty years being bored to death by process nobody can be bothered to fix. I would rather build the alternative.
 
