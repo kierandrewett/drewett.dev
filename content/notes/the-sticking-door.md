@@ -1,7 +1,7 @@
 ---
 title: The Sticking Door
 date: 2026-06-27
-summary: The case against everything that gets between you and the work.
+summary: Most work friction is a door that sticks. Nobody fixes it, so everyone learns to live around it.
 ---
 
 Friction is anything between you and the work.
