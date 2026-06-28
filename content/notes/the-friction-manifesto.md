@@ -10,7 +10,7 @@ The Teams call that should have been a message. The ticket you chase for a week 
 
 The thing you need is buried in SharePoint, or trapped behind a half-hour slot in someone's calendar next Tuesday. None of it is the work. All of it slows the work down.
 
-People stop noticing. They work around the squeak, the form, the delay, the meeting. I have spent enough time on the wrong side of it to stop being polite.
+Most people stop noticing. They work around the squeak, the form, the delay, the meeting. I have spent enough time on the wrong side of it to stop being polite.
 
 It is expensive too. Interrupt hard work and it takes about twenty-five minutes to get properly back into it.<sup><a href="#ref-1">[1]</a></sup>
 
