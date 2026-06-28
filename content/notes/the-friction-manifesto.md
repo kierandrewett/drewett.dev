@@ -70,7 +70,7 @@ This is not fluffy. Low control over your own work is linked to worse health ove
 
 Some arguments run for weeks on paper and end in minutes once someone builds the thing.
 
-Build the rough version and let it answer the question. Working software has always told you more than a document can.<sup><a href="#ref-9">[9]</a></sup>
+Build something rough first. Let it answer the question. Working software has always told you more than a document can.<sup><a href="#ref-9">[9]</a></sup>
 
 Meetings are fine occasionally and terrible as the default. Unnecessary ones cost American business an estimated quarter of a trillion dollars a year.<sup><a href="#ref-10">[10]</a></sup>
 
