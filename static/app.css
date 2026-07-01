@@ -915,14 +915,14 @@ main:has(> article.note-detail) {
 	background: var(--sticky-bg);
 	border-radius: 9999px;
 	filter: blur(150px);
-	opacity: 0.55;
+	opacity: 0.25;
 	z-index: -1;
 	pointer-events: none;
 	transition: opacity 200ms ease;
 }
 
 .sticky-note:hover::before {
-	opacity: 0.9;
+	opacity: 0.4;
 }
 
 .sticky-note:visited {
@@ -1000,6 +1000,28 @@ main:has(> article.note-detail) {
 	--sticky-bg: #ffe0b5;
 	--sticky-bg-edge: #f0bb78;
 	--sticky-rotate: -0.4deg;
+}
+
+/* Explicit per-note colors (frontmatter `color:`), override the auto cycle. */
+.sticky-note-item .sticky-note.sticky-note--yellow {
+	--sticky-bg: #fff3a3;
+	--sticky-bg-edge: #ecd35a;
+}
+.sticky-note-item .sticky-note.sticky-note--pink {
+	--sticky-bg: #ffd1dc;
+	--sticky-bg-edge: #f1a8bd;
+}
+.sticky-note-item .sticky-note.sticky-note--blue {
+	--sticky-bg: #c5e3f6;
+	--sticky-bg-edge: #95c4e3;
+}
+.sticky-note-item .sticky-note.sticky-note--green {
+	--sticky-bg: #d4f0c5;
+	--sticky-bg-edge: #a4d394;
+}
+.sticky-note-item .sticky-note.sticky-note--orange {
+	--sticky-bg: #ffe0b5;
+	--sticky-bg-edge: #f0bb78;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1225,6 +1247,16 @@ html[data-reading-theme="sepia"] .note-detail-title {
 	margin: 0.4rem 0;
 	padding-inline-start: 0.25rem;
 	text-align: left;
+}
+
+/* Keep anchored targets (footnotes, citations, headings) clear of the
+   viewport top when jumped to via a hash link. */
+.note-body :target,
+.note-body [id],
+.note-body h2,
+.note-body h3,
+.note-body h4 {
+	scroll-margin-top: 5rem;
 }
 
 .note-body li:has(> a[id]:target) {

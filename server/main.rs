@@ -39,6 +39,7 @@ struct Note {
     summary: String,
     date: String,
     date_iso: String,
+    color: String,
     unlisted: bool,
     #[serde(skip_serializing)]
     html: String,
@@ -511,6 +512,11 @@ fn build_note(slug: String, raw: &str) -> Note {
         .get("unlisted")
         .map(|s| matches!(s.trim().to_ascii_lowercase().as_str(), "true" | "yes" | "1"))
         .unwrap_or(false);
+    let color = fm
+        .get("color")
+        .map(|s| s.trim().to_ascii_lowercase())
+        .filter(|s| matches!(s.as_str(), "yellow" | "pink" | "blue" | "green" | "orange"))
+        .unwrap_or_default();
     let html = render_markdown(&preprocess_markdown(&body));
     Note {
         slug,
@@ -518,6 +524,7 @@ fn build_note(slug: String, raw: &str) -> Note {
         summary,
         date,
         date_iso,
+        color,
         unlisted,
         html,
     }

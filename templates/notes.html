@@ -14,7 +14,7 @@
 	<ul class="sticky-board">
 		{% for note in notes %}
 		<li class="sticky-note-item">
-			<a class="sticky-note" href="/notes/{{ note.slug }}">
+			<a class="sticky-note{% if note.color %} sticky-note--{{ note.color }}{% endif %}" href="/notes/{{ note.slug }}">
 				<h2 class="sticky-note-title">{{ note.title }}</h2>
 				{% if note.summary %}<p class="sticky-note-summary">{{ note.summary }}</p>{% endif %}
 				{% if note.date %}<time class="sticky-note-date" datetime="{{ note.date_iso }}">{{ note.date }}</time>{% endif %}
