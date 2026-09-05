@@ -1,0 +1,7 @@
+.git
+target
+.reference-archive
+**/__pycache__
+node_modules
+.env
+.env.*
