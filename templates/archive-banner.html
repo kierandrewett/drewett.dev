@@ -1,0 +1,38 @@
+<section aria-label="Archive information" style="all: initial !important; display: block !important; position: relative !important; z-index: 2147483647 !important; isolation: isolate !important;">
+<template shadowrootmode="closed">
+<style>
+:host { all: initial; display: block; }
+header { box-sizing: border-box; padding: 22px max(20px, calc((100% - 1120px) / 2)); border-bottom: 1px solid #ccc5b7; background: #faf8f2; color: #27251f; font: 15px/1.55 system-ui, sans-serif; }
+.heading { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline; justify-content: space-between; }
+h1 { margin: 0; font-size: 20px; letter-spacing: -.02em; }
+p { margin: 8px 0 0; }
+time, small { color: #57534b; font-size: 13px; }
+a { color: #244f3d; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+a:hover { color: #102d21; }
+a:focus-visible, summary:focus-visible { outline: 2px solid #244f3d; outline-offset: 4px; }
+.papers { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 14px 0 0; }
+.papers a { display: inline-block; padding: 8px 12px; border: 1px solid #b8c4b9; border-radius: 4px; background: #eef2ec; font-weight: 600; }
+.papers small { display: block; padding: 2px 0; }
+details { margin-top: 12px; }
+summary { cursor: pointer; color: #6c411e; }
+ul { padding-left: 20px; }
+@media (max-width: 560px) { header { padding: 16px; } .heading { display: block; } .papers { display: block; } .papers li + li { margin-top: 8px; } }
+</style>
+<header>
+<div class="heading"><h1>Archived copy</h1><time datetime="{{ record.accessed_at }}">Saved {{ record.accessed_at }}</time></div>
+<p>A frozen copy of <a href="{{ record.url }}" rel="noreferrer">{{ record.url }}</a>.</p>
+{% if record.asset_errors | length > 0 %}<p>Some page assets could not be saved.</p>{% endif %}
+{% if record.entry == "document.pdf" %}<p><a href="{{ archive_root }}/document.pdf" download>Download saved PDF</a></p>{% endif %}
+{% if record.documents | length > 0 %}
+<ul class="papers" aria-label="Saved papers and full text">
+{% for document in record.documents %}<li><a href="{{ archive_root }}/{{ document.file }}">{{ document.title }}</a><small>Saved {{ document.captured_at }}</small></li>{% endfor %}
+</ul>
+{% endif %}
+{% if record.document_errors | length > 0 %}
+<details><summary>{{ record.document_errors | length }} linked document(s) could not be saved</summary><ul>
+{% for error in record.document_errors %}<li>{{ error.url }}</li>{% endfor %}
+</ul></details>
+{% endif %}
+</header>
+</template>
+</section>

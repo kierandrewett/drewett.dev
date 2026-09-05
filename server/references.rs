@@ -3,10 +3,11 @@ use crate::{get_notes, AppState};
 use axum::{
     extract::{Path, State},
     http::{header, HeaderValue, StatusCode},
-    response::{Html, IntoResponse, Response},
+    response::{Html, IntoResponse, Redirect, Response},
 };
+use lol_html::{element, html_content::ContentType, rewrite_str, RewriteStrSettings};
 use regex::Regex;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     path::PathBuf,
@@ -22,7 +23,7 @@ static REFERENCE: LazyLock<Regex> = LazyLock::new(|| {
 static LINK: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"<a\b[^>]*href="(https?://[^"]+)"[^>]*>.*?</a>"#).unwrap());
 
-#[derive(Default, Deserialize)]
+#[derive(Default, Deserialize, Serialize)]
 struct Record {
     id: String,
     url: String,
@@ -33,6 +34,17 @@ struct Record {
     entry: String,
     #[serde(default)]
     asset_errors: Vec<serde_json::Value>,
+    #[serde(default)]
+    documents: Vec<Document>,
+    #[serde(default)]
+    document_errors: Vec<serde_json::Value>,
+}
+
+#[derive(Deserialize, Serialize)]
+struct Document {
+    title: String,
+    file: String,
+    captured_at: String,
 }
 
 pub fn directory() -> PathBuf {
@@ -131,27 +143,104 @@ pub async fn page(State(_state): State<Arc<AppState>>, Path(id): Path<String>) -
     else {
         return (StatusCode::NOT_FOUND, "Archived reference not found").into_response();
     };
-    let date = escape(record.accessed_at.as_deref().unwrap_or_default());
-    let url = escape(&record.url);
-    let entry = escape(&record.entry);
-    let asset_note = if record.asset_errors.is_empty() {
-        ""
+    if record.entry == "index.html" {
+        return Redirect::temporary(&format!("/archive/{id}/files/index.html")).into_response();
+    }
+    let source = "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Archived reference</title></head><body></body></html>";
+    match native_page(source, record, &id) {
+        Ok(html) => protect(Html(html).into_response(), "index.html"),
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Archive rendering failed",
+        )
+            .into_response(),
+    }
+}
+
+fn native_page(
+    source: &str,
+    record: &Record,
+    id: &str,
+) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    let mut context = tera::Context::new();
+    context.insert("record", record);
+    context.insert("archive_root", &format!("/archive/{id}/files"));
+    let banner = tera::Tera::one_off(
+        include_str!("../templates/archive-banner.html"),
+        &context,
+        true,
+    )?;
+    // Parse and strip active markup on every replay, including older captures.
+    // The saved source bytes and assets are never changed by presentation rules.
+    let mut has_body = false;
+    let output = rewrite_str(
+        source,
+        RewriteStrSettings {
+            element_content_handlers: vec![
+                element!(
+                    "script, iframe, frame, frameset, object, embed, applet, base, template",
+                    |el| {
+                        el.remove();
+                        Ok(())
+                    }
+                ),
+                element!("form", |el| {
+                    el.remove_and_keep_content();
+                    Ok(())
+                }),
+                element!("input, button, select, textarea", |el| {
+                    el.set_attribute("disabled", "")?;
+                    Ok(())
+                }),
+                element!("meta[http-equiv]", |el| {
+                    el.remove();
+                    Ok(())
+                }),
+                element!("*", |el| {
+                    let attributes: Vec<String> = el
+                        .attributes()
+                        .iter()
+                        .map(|a| a.name())
+                        .filter(|name| {
+                            name.starts_with("on")
+                                || matches!(
+                                    name.as_str(),
+                                    "srcdoc" | "autofocus" | "formaction" | "action" | "ping"
+                                )
+                        })
+                        .collect();
+                    for name in attributes {
+                        el.remove_attribute(&name);
+                    }
+                    for name in ["href", "xlink:href"] {
+                        if let Some(value) = el.get_attribute(name) {
+                            let normalised: String = html_escape::decode_html_entities(&value)
+                                .chars()
+                                .filter(|c| !c.is_ascii_whitespace() && !c.is_control())
+                                .collect();
+                            if normalised.to_ascii_lowercase().starts_with("javascript:")
+                                || normalised.to_ascii_lowercase().starts_with("vbscript:")
+                            {
+                                el.remove_attribute(name);
+                            }
+                        }
+                    }
+                    Ok(())
+                }),
+                element!("body", |el| {
+                    has_body = true;
+                    el.prepend(&banner, ContentType::Html);
+                    Ok(())
+                }),
+            ],
+            ..RewriteStrSettings::default()
+        },
+    )?;
+    if has_body {
+        Ok(output)
     } else {
-        " Some assets could not be captured."
-    };
-    let saved_document = if record.entry == "document.pdf" {
-        format!("<p><a href=\"/archive/{id}/files/document.pdf\">Download archived PDF</a></p>")
-    } else {
-        format!("<iframe title=\"Saved reference page\" sandbox src=\"/archive/{id}/files/{entry}\"></iframe>")
-    };
-    let html = format!(
-        r#"<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Archived reference</title><style>body{{margin:0;font:16px system-ui;background:#faf8f2;color:#222}}header{{padding:1rem;overflow-wrap:anywhere}}p{{margin:.4rem 0}}iframe{{display:block;width:100%;height:85vh;border:0;background:white}}a{{color:#174e8c}}</style><header><strong>Archived reference</strong><p>Captured at <time>{date}</time>. This is a frozen copy.{asset_note}</p><p><a href="{url}" rel="noreferrer">Original source</a> · <a href="/archive/{id}/files/{entry}">Open saved document</a></p></header>{saved_document}</html>"#
-    );
-    let mut response = Html(html).into_response();
-    response
-        .headers_mut()
-        .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-cache"));
-    response
+        Ok(format!("{banner}{output}"))
+    }
 }
 
 pub async fn asset(Path((id, file)): Path<(String, String)>) -> Response {
@@ -162,14 +251,36 @@ pub async fn asset(Path((id, file)): Path<(String, String)>) -> Response {
             .bytes()
             .all(|b| b.is_ascii_alphanumeric() || b == b'.' || b == b'-')
         || file.contains("..")
-        || matches!(file.as_str(), "original.bin" | "capture.json")
+        || matches!(
+            file.as_str(),
+            "original.bin" | "capture.json" | "documents.json" | "documents.tmp"
+        )
     {
         return StatusCode::NOT_FOUND.into_response();
     }
-    let bytes = match tokio::fs::read(directory().join("pages").join(id).join(&file)).await {
+    let mut bytes = match tokio::fs::read(directory().join("pages").join(&id).join(&file)).await {
         Ok(bytes) => bytes,
         Err(_) => return StatusCode::NOT_FOUND.into_response(),
     };
+    if file.ends_with(".html") {
+        let records = records().await;
+        let Some(record) = records
+            .values()
+            .find(|r| r.id == id && r.accessed_at.is_some())
+        else {
+            return StatusCode::NOT_FOUND.into_response();
+        };
+        bytes = match native_page(&String::from_utf8_lossy(&bytes), record, &id) {
+            Ok(html) => html.into_bytes(),
+            Err(_) => {
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Archive rendering failed",
+                )
+                    .into_response()
+            }
+        };
+    }
     let content_type = match file.rsplit('.').next().unwrap_or("") {
         "html" => "text/html; charset=utf-8",
         "css" => "text/css; charset=utf-8",
@@ -184,18 +295,27 @@ pub async fn asset(Path((id, file)): Path<(String, String)>) -> Response {
         "woff" => "font/woff",
         _ => "application/octet-stream",
     };
-    let mut response = ([(header::CONTENT_TYPE, content_type)], bytes).into_response();
+    protect(
+        ([(header::CONTENT_TYPE, content_type)], bytes).into_response(),
+        &file,
+    )
+}
+
+fn protect(mut response: Response, file: &str) -> Response {
     let headers = response.headers_mut();
-    headers.insert(header::CONTENT_SECURITY_POLICY, HeaderValue::from_static("sandbox; default-src 'none'; script-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; media-src 'self' data:; form-action 'none'; base-uri 'none'; frame-ancestors 'self'"));
+    headers.insert(header::CONTENT_SECURITY_POLICY, HeaderValue::from_static("sandbox allow-downloads; default-src 'none'; script-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; media-src 'self' data:; form-action 'none'; base-uri 'none'; frame-ancestors 'none'"));
     // Sandboxed documents have an opaque origin; saved fonts need CORS.
     headers.insert(
         header::ACCESS_CONTROL_ALLOW_ORIGIN,
         HeaderValue::from_static("*"),
     );
-    if file.ends_with(".pdf") {
+    if matches!(
+        file.rsplit('.').next(),
+        Some("pdf" | "doc" | "docx" | "epub")
+    ) {
         headers.insert(
             header::CONTENT_DISPOSITION,
-            HeaderValue::from_static("attachment; filename=archived-reference.pdf"),
+            HeaderValue::from_str(&format!("attachment; filename=\"{file}\"")).unwrap(),
         );
     }
     headers.insert(
@@ -208,7 +328,11 @@ pub async fn asset(Path((id, file)): Path<(String, String)>) -> Response {
     );
     headers.insert(
         header::CACHE_CONTROL,
-        HeaderValue::from_static("public, max-age=31536000, immutable"),
+        HeaderValue::from_static(if file.ends_with(".html") {
+            "no-cache"
+        } else {
+            "public, max-age=31536000, immutable"
+        }),
     );
     headers.insert(
         header::HeaderName::from_static("x-robots-tag"),
@@ -220,6 +344,42 @@ pub async fn asset(Path((id, file)): Path<(String, String)>) -> Response {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn replay_is_native_and_strips_active_content() {
+        let record = Record {
+            id: "a".repeat(64),
+            url: "https://example.org/paper".into(),
+            accessed_at: Some("2026-09-06T12:00:00Z".into()),
+            entry: "index.html".into(),
+            ..Default::default()
+        };
+        let source = r#"<!doctype html><html><head><style>p { color: red; }</style><script src="evil.js">alert(1)</script><meta http-equiv="refresh" content="0;url=https://bad.example"></head><body onload="bad()"><h1>Saved paper</h1><iframe src="evil.html"></iframe><form action="https://bad.example"><input autofocus><p>Evidence survives.</p></form><a href="java&#x73;cript:alert(1)" onclick="bad()">Link</a></body></html>"#;
+        let result = native_page(source, &record, &record.id).unwrap();
+        assert!(result.contains("Saved paper"));
+        assert!(result.contains("Evidence survives."));
+        assert!(result.contains("<style>p { color: red; }</style>"));
+        assert!(result.contains("shadowrootmode=\"closed\""));
+        for forbidden in [
+            "<iframe",
+            "<script",
+            "<form",
+            "onclick",
+            "onload",
+            "autofocus",
+            "http-equiv",
+            "alert(1)",
+        ] {
+            assert!(!result.contains(forbidden), "Replay retained {forbidden}");
+        }
+        assert!(result.contains("disabled"));
+        let response = protect(Html(result).into_response(), "index.html");
+        assert!(response.headers()[header::CONTENT_SECURITY_POLICY]
+            .to_str()
+            .unwrap()
+            .contains("script-src 'none'"));
+        assert_eq!(response.headers()[header::CACHE_CONTROL], "no-cache");
+    }
+
     #[test]
     fn references_only_preserve_citations_and_escape_urls() {
         let source = r##"<p><a href="https://uncited.example">not cited</a><sup><a href="#ref-1">[1]</a></sup></p><ol><li><a id="ref-1"></a>Author. <a target="_blank" href="https://example.org/?a=1&amp;b=2">Title</a></li></ol>"##;
