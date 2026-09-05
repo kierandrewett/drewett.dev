@@ -8,7 +8,6 @@ import html
 from html.parser import HTMLParser
 import ipaddress
 import json
-import os
 from pathlib import Path
 import re
 import shutil
@@ -118,26 +117,87 @@ def changed(baseline, current):
     return similarity < 0.45
 
 
+class ImportantLinks(HTMLParser):
+    """Select full text and document downloads, not navigation or related articles."""
+    def __init__(self, source):
+        super().__init__(convert_charrefs=True)
+        self.links = {}
+        self.href = None
+        self.label = []
+        self.feed(source)
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == 'a':
+            self.href = attrs.get('href')
+            self.label = [attrs.get('title', ''), attrs.get('aria-label', '')]
+        elif tag == 'meta' and attrs.get('name', '').lower() in ('citation_pdf_url', 'citation_fulltext_html_url'):
+            value = attrs.get('content')
+            if value:
+                self.links[value] = 'Paper (PDF)' if attrs.get('name', '').lower() == 'citation_pdf_url' else 'Full text'
+
+    def handle_data(self, data):
+        if self.href:
+            self.label.append(data)
+
+    def handle_endtag(self, tag):
+        if tag == 'a' and self.href:
+            label = ' '.join(self.label).strip()
+            path = urllib.parse.urlsplit(self.href).path.lower()
+            if re.search(r'\.(pdf|epub|docx?)(?:$)', path) or re.search(r'/(?:e?pdf|fulltext|full-text)/', path) or re.search(r'\b(?:pdf|full[ -]text|full article|(?:read|view|download) (?:the )?(?:paper|article|document))\b', label, re.I):
+                self.links[self.href] = label or path.rsplit('/', 1)[-1]
+            self.href = None
+
+
+
+def capture_context(documents=()):
+    return {
+        'assets': {d['url']: d['file'] for d in documents},
+        'errors': [], 'documents': {d['url']: d for d in documents},
+        'document_errors': [], 'total': 0, 'deadline': time.monotonic() + 180,
+    }
+
+
 class Snapshot(HTMLParser):
     """Rewrite resource URLs into one local asset directory, including nested CSS."""
-    def __init__(self, source, base, folder, loader=fetch):
+    def __init__(self, source, base, folder, loader=fetch, context=None, depth=0, documents_only=False):
         super().__init__(convert_charrefs=False)
         self.base = base
         self.folder = folder
         self.loader = loader
         self.output = []
-        self.assets = {}
-        self.errors = []
-        self.total = 0
-        self.deadline = time.monotonic() + 180
+        self.context = context if context is not None else capture_context()
+        self.assets = self.context['assets']
+        self.errors = self.context['errors']
+        self.documents = self.context['documents']
+        self.depth = depth
         self.in_style = False
         # The first base URL applies to the entire document, including earlier tags.
         base_match = re.search(r'<base\b[^>]*href\s*=\s*[\'"]([^\'"]+)', source, re.I)
         if base_match:
             self.base = urllib.parse.urljoin(base, html.unescape(base_match[1]))
-        self.feed(source)
+        # Fetch the paper before decorative assets consume the capture budget.
+        if self.depth < 2:
+            for href, label in ImportantLinks(source).links.items():
+                self.document(href, label)
+        if not documents_only:
+            self.feed(source)
 
-    def asset(self, value, base=None):
+    def document(self, href, label):
+        url = urllib.parse.urldefrag(urllib.parse.urljoin(self.base, href))[0]
+        if url in self.documents:
+            return
+        if len(self.documents) >= 12:
+            self.context['document_errors'].append({'url': url, 'error': 'Linked document limit reached'})
+            return
+        self.documents[url] = {'url': url, 'title': label}
+        filename = self.asset(url, document=True)
+        if filename == 'missing-resource':
+            self.context['document_errors'].append({'url': url, 'error': self.errors[-1]['error'] if self.errors else 'Unavailable'})
+        else:
+            self.documents[url].update(file=filename, captured_at=now())
+
+    def asset(self, value, base=None, document=False):
         value = value.strip()
         if not value or value.startswith(('data:', '#')):
             return value
@@ -145,18 +205,36 @@ class Snapshot(HTMLParser):
         if url in self.assets:
             return self.assets[url] + ('#' + fragment if fragment else '')
         try:
-            if len(self.assets) >= MAX_ASSETS or self.total >= MAX_TOTAL or time.monotonic() > self.deadline:
+            if len(self.assets) >= MAX_ASSETS or self.context['total'] >= MAX_TOTAL or time.monotonic() > self.context['deadline']:
                 raise ValueError('Capture resource budget reached')
             data, mime, charset, final = self.loader(url)
-            if self.total + len(data) > MAX_TOTAL:
+            if self.context['total'] + len(data) > MAX_TOTAL:
                 raise ValueError('Capture exceeds 64 MiB')
-            self.total += len(data)
-            extension = {'text/css': '.css', 'text/javascript': '.js', 'application/javascript': '.js', 'image/svg+xml': '.svg', 'image/png': '.png', 'image/jpeg': '.jpg', 'image/webp': '.webp', 'image/gif': '.gif', 'font/woff2': '.woff2', 'font/woff': '.woff', 'application/pdf': '.pdf'}.get(mime, '.bin')
+            self.context['total'] += len(data)
+            if document:
+                if mime in ('text/html', 'application/xhtml+xml'):
+                    valid_page(data.decode(charset, errors='replace'))
+                elif mime == 'application/pdf':
+                    if not data.startswith(b'%PDF-'):
+                        raise ValueError('Invalid linked PDF')
+                elif mime not in ('application/epub+zip', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'):
+                    raise ValueError('Unsupported linked document: ' + mime)
+            extension = {'text/html': '.html', 'application/xhtml+xml': '.html', 'application/epub+zip': '.epub', 'application/msword': '.doc', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx', 'text/css': '.css', 'text/javascript': '.js', 'application/javascript': '.js', 'image/svg+xml': '.svg', 'image/png': '.png', 'image/jpeg': '.jpg', 'image/webp': '.webp', 'image/gif': '.gif', 'font/woff2': '.woff2', 'font/woff': '.woff', 'application/pdf': '.pdf'}.get(mime, '.bin')
             name = key(url) + extension
             self.assets[url] = name
             if mime == 'text/css':
                 data = self.css(data.decode(charset, errors='replace'), final).encode()
-            (self.folder / name).write_bytes(data)
+            elif mime in ('text/html', 'application/xhtml+xml'):
+                if self.depth >= 2:
+                    raise ValueError('Linked page depth limit reached')
+                child = Snapshot(data.decode(charset, errors='replace'), final, self.folder, self.loader, self.context, self.depth + 1)
+                data = ''.join(child.output).encode()
+            # Enrichment can add documents but must never overwrite saved assets.
+            path = self.folder / name
+            if not path.exists():
+                temporary = path.with_name(path.name + '.tmp')
+                temporary.write_bytes(data)
+                temporary.replace(path)
             return name + ('#' + fragment if fragment else '')
         except Exception as error:
             self.errors.append({'url': url, 'error': str(error)})
@@ -190,6 +268,9 @@ class Snapshot(HTMLParser):
                     value = ', '.join(' '.join([self.asset(p[0]), *p[1:]]) for part in value.split(',') if (p := part.split()))
             elif name in ('href', 'action', 'formaction') and not value.startswith('#'):
                 value = urllib.parse.urljoin(self.base, value)
+                document = self.documents.get(urllib.parse.urldefrag(value)[0], {})
+                if tag == 'a' and document.get('file'):
+                    value = document['file']
             output.append(name + '="' + html.escape(value, quote=True) + '"')
         self.output.append('<' + tag + (' ' + ' '.join(output) if output else '') + '>')
 
@@ -233,6 +314,8 @@ def check(url, old, root, loader=fetch):
             metadata = json.loads((folder / 'capture.json').read_text())
             record.update(metadata, failures=0, reason='', use_archive=False)
             return record
+        if record.get('accessed_at') and record.get('document_errors'):
+            record = enrich(url, record, root, loader)
         data, mime, charset, final = loader(url)
         if mime not in ('text/html', 'application/xhtml+xml', 'application/pdf'):
             raise ValueError('Unsupported document type: ' + mime)
@@ -259,6 +342,8 @@ def check(url, old, root, loader=fetch):
         try:
             (staging / 'original.bin').write_bytes(data)
             errors = []
+            documents = []
+            document_errors = []
             if source is None:
                 (staging / 'document.pdf').write_bytes(data)
                 entry = 'document.pdf'
@@ -266,9 +351,11 @@ def check(url, old, root, loader=fetch):
                 snapshot = Snapshot(source, final, staging, loader)
                 (staging / 'index.html').write_text(''.join(snapshot.output), encoding='utf-8')
                 errors = snapshot.errors
+                documents = [d for d in snapshot.documents.values() if d.get('file')]
+                document_errors = snapshot.context['document_errors']
                 entry = 'index.html'
             captured = now()
-            metadata = {'url': url, 'final_url': final, 'accessed_at': captured, 'entry': entry, 'asset_errors': errors, 'baseline': fp}
+            metadata = {'url': url, 'final_url': final, 'accessed_at': captured, 'entry': entry, 'asset_errors': errors, 'baseline': fp, 'charset': charset, 'documents': documents, 'document_errors': document_errors, 'linked_documents_version': 1}
             (staging / 'capture.json').write_text(json.dumps(metadata, indent=2))
             folder.parent.mkdir(parents=True, exist_ok=True)
             staging.rename(folder)
@@ -277,6 +364,22 @@ def check(url, old, root, loader=fetch):
             shutil.rmtree(staging, ignore_errors=True)
     except Exception as error:
         record_failure(record, str(error))
+    return record
+
+
+def enrich(url, record, root, loader=fetch):
+    record = dict(record)
+    folder = root / 'pages' / record['id']
+    if record.get('entry') == 'index.html':
+        source = (folder / 'original.bin').read_bytes().decode(record.get('charset', 'utf-8'), errors='replace')
+        snapshot = Snapshot(source, record.get('final_url', url), folder, loader, context=capture_context(record.get('documents', [])), documents_only=True)
+        record['documents'] = [d for d in snapshot.documents.values() if d.get('file')]
+        record['document_errors'] = snapshot.context['document_errors']
+    record['linked_documents_version'] = 1
+    # The supplemental record leaves the original page and its timestamp intact.
+    temporary = folder / 'documents.tmp'
+    temporary.write_text(json.dumps({k: record.get(k, []) for k in ('documents', 'document_errors')}, indent=2))
+    temporary.replace(folder / 'documents.json')
     return record
 
 
@@ -290,9 +393,13 @@ def run(root, urls):
         manifest = root / 'manifest.json'
         # Refuse to overwrite damaged state. Existing captures are irreplaceable.
         records = json.loads(manifest.read_text()) if manifest.exists() else {}
-        due = [u for u in sorted(set(urls)) if records.get(u, {}).get('next_check', 0) <= time.time()]
+        due = [u for u in sorted(set(urls)) if records.get(u, {}).get('next_check', 0) <= time.time() or (records.get(u, {}).get('accessed_at') and not records[u].get('linked_documents_version'))]
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
-            jobs = {pool.submit(check, u, records.get(u), root): u for u in due}
+            jobs = {}
+            for u in due:
+                previous = records.get(u, {})
+                action = enrich if previous.get('accessed_at') and not previous.get('linked_documents_version') else check
+                jobs[pool.submit(action, u, previous, root)] = u
             for future in concurrent.futures.as_completed(jobs):
                 url = jobs[future]
                 records[url] = future.result()

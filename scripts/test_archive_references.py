@@ -5,7 +5,7 @@ import unittest
 from unittest.mock import patch
 import urllib.error
 
-from archive_references import Snapshot, check, changed, fingerprint, public_url, run
+from archive_references import Snapshot, ImportantLinks, check, changed, enrich, fingerprint, public_url, run
 
 
 def page(words='reference evidence reliable methods results conclusions ' * 40):
@@ -54,6 +54,61 @@ class ArchiveTests(unittest.TestCase):
             recovered = check(url, None, root, offline)
             self.assertEqual(recovered['accessed_at'], first['accessed_at'])
             self.assertEqual(recovered['baseline'], first['baseline'])
+
+    def test_full_text_links_and_pdfs_are_saved_with_their_assets(self):
+        source = page() + '<a href="/paper">Read full text</a><a href="/contact">Contact</a>'
+        fulltext = page() + '<a href="/paper.pdf">Download PDF</a><img src="/figure.png">'
+        resources = {
+            'https://example.org/paper': (fulltext.encode(), 'text/html'),
+            'https://example.org/paper.pdf': (b'%PDF-1.7 paper', 'application/pdf'),
+            'https://example.org/figure.png': (b'figure', 'image/png'),
+        }
+        def loader(url):
+            data, mime = resources[url]
+            return data, mime, 'utf-8', url
+        with tempfile.TemporaryDirectory() as temporary:
+            folder = Path(temporary)
+            snapshot = Snapshot(source, 'https://example.org/abstract', folder, loader)
+            documents = snapshot.documents
+            self.assertEqual(len(documents), 2)
+            self.assertFalse(snapshot.context['document_errors'])
+            pdf = documents['https://example.org/paper.pdf']['file']
+            self.assertEqual((folder / pdf).read_bytes(), b'%PDF-1.7 paper')
+            full = documents['https://example.org/paper']['file']
+            self.assertIn('href="' + full + '"', ''.join(snapshot.output))
+            self.assertIn('href="' + pdf + '"', (folder / full).read_text())
+            self.assertNotIn('https://example.org/contact', snapshot.assets)
+
+    def test_enrichment_preserves_original_page_and_document_timestamp(self):
+        source = page() + '<a href="/paper.pdf">PDF</a>'
+        def loader(url):
+            if url.endswith('.pdf'):
+                return b'%PDF-1.7 paper', 'application/pdf', 'utf-8', url
+            return source.encode(), 'text/html', 'utf-8', url
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            url = 'https://example.org/abstract'
+            record = check(url, None, root, loader)
+            path = root / 'pages' / record['id'] / 'index.html'
+            before = path.read_bytes()
+            def no_fetch(url):
+                raise AssertionError('Existing documents must not be fetched again')
+            result = enrich(url, record, root, no_fetch)
+            self.assertEqual(result['documents'], record['documents'])
+            self.assertEqual(result['accessed_at'], record['accessed_at'])
+            self.assertEqual(path.read_bytes(), before)
+
+    def test_failed_paper_download_is_reported(self):
+        def loader(url):
+            raise OSError('HTTP 403')
+        with tempfile.TemporaryDirectory() as temporary:
+            snapshot = Snapshot('<a href="/paper.pdf">PDF</a>', 'https://example.org/', Path(temporary), loader)
+            self.assertEqual(snapshot.context['document_errors'][0]['url'], 'https://example.org/paper.pdf')
+            self.assertNotIn('file', snapshot.documents['https://example.org/paper.pdf'])
+
+    def test_pdf_metadata_is_discovered(self):
+        links = ImportantLinks('<meta name="citation_pdf_url" content="https://example.org/download?id=1">')
+        self.assertIn('https://example.org/download?id=1', links.links)
 
     def test_recursive_assets_and_base_urls(self):
         resources = {
@@ -112,7 +167,7 @@ class ArchiveTests(unittest.TestCase):
             root = Path(temporary)
             with patch('archive_references.fetch', return_value=(page().encode(), 'text/html', 'utf-8', 'https://example.org')):
                 # Patch check because the default loader is bound at definition time.
-                with patch('archive_references.check', return_value={'next_check': 9999999999, 'accessed_at': '2026-09-06'}) as checker:
+                with patch('archive_references.check', return_value={'next_check': 9999999999, 'accessed_at': '2026-09-06', 'linked_documents_version': 1}) as checker:
                     run(root, ['https://example.org', 'https://example.org'])
                     run(root, ['https://example.org'])
                     self.assertEqual(checker.call_count, 1)
