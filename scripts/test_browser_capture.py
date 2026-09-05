@@ -93,6 +93,24 @@ class VersionTests(unittest.TestCase):
             self.assertEqual((root / 'pages' / original['id'] / 'index.html').read_bytes(), saved)
             self.assertIn(b'Hydrated full text.', (root / 'pages' / upgraded['id'] / 'index.html').read_bytes())
 
+    def test_failed_filtered_upgrade_still_detects_dead_source(self):
+        from archive_references import rendered_check
+        class Missing:
+            def __init__(self, **kwargs): pass
+            def __enter__(self): return self
+            def __exit__(self, *args): pass
+            def document(self, url): raise ValueError('HTTP 404')
+        with tempfile.TemporaryDirectory() as temporary:
+            old = {'id': 'original', 'accessed_at': '2026-09-05', 'baseline': {'type': 'html'},
+                   'capture_method': 'chromium', 'use_archive': False, 'failures': 0}
+            with patch('browser_capture.BrowserCapture', Missing):
+                first = rendered_check('https://example.org/reference', old, Path(temporary))
+                second = rendered_check('https://example.org/reference', first, Path(temporary))
+            self.assertFalse(first['use_archive'])
+            self.assertTrue(second['use_archive'])
+            self.assertEqual(second['id'], 'original')
+            self.assertEqual(second['reason'], 'HTTP 404')
+
     def test_browser_failure_does_not_mark_a_source_dead(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

@@ -406,6 +406,9 @@ def rendered_check(url, old, root):
     if upgrading and (not result.get('accessed_at') or result.get('capture_method') != 'chromium'):
         previous = dict(old)
         previous.update(render_error=result.get('render_error') or result.get('reason', 'Rendered capture unavailable'), next_check=time.time() + DAY)
+        if not result.get('render_error') and result.get('failures'):
+            previous['checked_at'] = result['checked_at']
+            record_failure(previous, result.get('reason', 'Source unavailable during upgrade'))
         return previous
     return result
 
