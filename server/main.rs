@@ -1,7 +1,7 @@
 mod references;
 
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::{header, HeaderValue, StatusCode},
     response::{Html, IntoResponse, Redirect, Response},
     routing::get,
@@ -649,7 +649,16 @@ async fn notes_list(State(state): State<Arc<AppState>>) -> Response {
     }
 }
 
-async fn note_detail(State(state): State<Arc<AppState>>, Path(slug): Path<String>) -> Response {
+#[derive(Deserialize)]
+struct NoteNavigation {
+    from: Option<String>,
+}
+
+async fn note_detail(
+    State(state): State<Arc<AppState>>,
+    Path(slug): Path<String>,
+    Query(navigation): Query<NoteNavigation>,
+) -> Response {
     let (content, notes) = tokio::join!(get_content(&state), get_notes(&state));
     let note = match notes.notes.iter().find(|n| n.slug == slug) {
         Some(n) => n.clone(),
@@ -664,6 +673,10 @@ async fn note_detail(State(state): State<Arc<AppState>>, Path(slug): Path<String
 
     let mut context = Context::new();
     context.insert("note", &note);
+    context.insert(
+        "note_return_path",
+        if navigation.from.as_deref() == Some("home") { "/" } else { "/notes" },
+    );
     context.insert("note_html", &references::render(&note.html).await);
     context.insert("pageviews", &pageviews);
     context.insert("footer_html", &footer_html);
