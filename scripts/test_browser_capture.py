@@ -38,7 +38,8 @@ class BrowserCaptureTests(unittest.TestCase):
             path = route.request.url.removeprefix(origin)
             mime, body = resources.get(path, ('text/plain', 'missing'))
             route.fulfill(status=200 if path in resources else 404, content_type=mime, body=body)
-        with BrowserCapture(validator=validator) as loader:
+        import adblock
+        with BrowserCapture(validator=validator, adblock_engine=adblock.Engine(adblock.FilterSet())) as loader:
             loader.context.route(origin + '/**', fixture)
             data, mime, _, final = loader.document(origin + '/')
             rendered = data.decode()
@@ -66,8 +67,10 @@ class VersionTests(unittest.TestCase):
         def http_loader(url):
             return source.encode(), 'text/html', 'utf-8', url
         class Rendered:
+            def __init__(self, **kwargs):
+                pass
             def __enter__(self):
-                self.info = {url: {'capture_method': 'chromium', 'render_settled': True}}
+                self.info = {url: {'capture_method': 'chromium', 'render_settled': True, 'adblock_version': 1}}
                 self.raw_documents = {url: source.encode()}
                 return self
             def __exit__(self, *args):

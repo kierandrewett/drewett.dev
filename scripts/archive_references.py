@@ -394,10 +394,10 @@ def rendered_check(url, old, root):
     if old and old.get('baseline', {}).get('type') == 'pdf':
         return check(url, old, root)
     from browser_capture import BrowserCapture
-    upgrading = bool(old and old.get('accessed_at') and old.get('capture_method') != 'chromium')
-    candidate = {'id': key('chromium-v1:' + url), 'url': url, 'failures': 0, 'use_archive': False} if upgrading else old
+    upgrading = bool(old and old.get('accessed_at') and old.get('adblock_version') != 1)
+    candidate = {'id': key('chromium-adblock-v1:' + url), 'url': url, 'failures': 0, 'use_archive': False} if upgrading else old
     try:
-        with BrowserCapture() as loader:
+        with BrowserCapture(filter_directory=root / 'filters') as loader:
             result = check(url, candidate, root, loader)
     except Exception as error:
         # A missing browser is an infrastructure error, not proof the source died.
@@ -420,7 +420,7 @@ def run(root, urls, upgrade_rendering=False):
         manifest = root / 'manifest.json'
         # Refuse to overwrite damaged state. Existing captures are irreplaceable.
         records = json.loads(manifest.read_text()) if manifest.exists() else {}
-        due = [u for u in sorted(set(urls)) if records.get(u, {}).get('next_check', 0) <= time.time() or (records.get(u, {}).get('accessed_at') and not records[u].get('linked_documents_version')) or (upgrade_rendering and records.get(u, {}).get('capture_method') != 'chromium' and records.get(u, {}).get('baseline', {}).get('type') != 'pdf')]
+        due = [u for u in sorted(set(urls)) if records.get(u, {}).get('next_check', 0) <= time.time() or (records.get(u, {}).get('accessed_at') and not records[u].get('linked_documents_version')) or (upgrade_rendering and records.get(u, {}).get('adblock_version') != 1 and records.get(u, {}).get('baseline', {}).get('type') != 'pdf')]
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
             jobs = {}
             for u in due:
