@@ -167,7 +167,7 @@ class ArchiveTests(unittest.TestCase):
             root = Path(temporary)
             with patch('archive_references.fetch', return_value=(page().encode(), 'text/html', 'utf-8', 'https://example.org')):
                 # Patch check because the default loader is bound at definition time.
-                with patch('archive_references.check', return_value={'next_check': 9999999999, 'accessed_at': '2026-09-06', 'linked_documents_version': 1}) as checker:
+                with patch('archive_references.rendered_check', return_value={'next_check': 9999999999, 'accessed_at': '2026-09-06', 'linked_documents_version': 1}) as checker:
                     run(root, ['https://example.org', 'https://example.org'])
                     run(root, ['https://example.org'])
                     self.assertEqual(checker.call_count, 1)

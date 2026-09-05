@@ -253,7 +253,7 @@ pub async fn asset(Path((id, file)): Path<(String, String)>) -> Response {
         || file.contains("..")
         || matches!(
             file.as_str(),
-            "original.bin" | "capture.json" | "documents.json" | "documents.tmp"
+            "original.bin" | "response.bin" | "capture.json" | "documents.json" | "documents.tmp"
         )
     {
         return StatusCode::NOT_FOUND.into_response();

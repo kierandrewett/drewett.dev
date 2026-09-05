@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Capture cited web pages and check immutable baselines. Uses the standard library."""
+"""Capture cited web pages and check immutable baselines. Uses Chromium for rendered HTML."""
 import concurrent.futures
 import datetime
 import fcntl
@@ -207,7 +207,8 @@ class Snapshot(HTMLParser):
         try:
             if len(self.assets) >= MAX_ASSETS or self.context['total'] >= MAX_TOTAL or time.monotonic() > self.context['deadline']:
                 raise ValueError('Capture resource budget reached')
-            data, mime, charset, final = self.loader(url)
+            load = getattr(self.loader, 'document', self.loader) if document else self.loader
+            data, mime, charset, final = load(url)
             if self.context['total'] + len(data) > MAX_TOTAL:
                 raise ValueError('Capture exceeds 64 MiB')
             self.context['total'] += len(data)
@@ -306,6 +307,7 @@ def record_failure(record, reason):
 
 def check(url, old, root, loader=fetch):
     record = dict(old or {'id': key(url), 'url': url, 'use_archive': False, 'failures': 0})
+    record.pop('render_error', None)
     record['checked_at'] = now()
     record['next_check'] = time.time() + DAY
     try:
@@ -316,7 +318,8 @@ def check(url, old, root, loader=fetch):
             return record
         if record.get('accessed_at') and record.get('document_errors'):
             record = enrich(url, record, root, loader)
-        data, mime, charset, final = loader(url)
+        data, mime, charset, final = getattr(loader, 'document', loader)(url)
+        capture_info = getattr(loader, 'info', {}).get(url, {'capture_method': 'http'})
         if mime not in ('text/html', 'application/xhtml+xml', 'application/pdf'):
             raise ValueError('Unsupported document type: ' + mime)
         if mime == 'application/pdf':
@@ -341,6 +344,9 @@ def check(url, old, root, loader=fetch):
         staging.mkdir(parents=True)
         try:
             (staging / 'original.bin').write_bytes(data)
+            response_bytes = getattr(loader, 'raw_documents', {}).get(url)
+            if response_bytes is not None:
+                (staging / 'response.bin').write_bytes(response_bytes)
             errors = []
             documents = []
             document_errors = []
@@ -355,7 +361,7 @@ def check(url, old, root, loader=fetch):
                 document_errors = snapshot.context['document_errors']
                 entry = 'index.html'
             captured = now()
-            metadata = {'url': url, 'final_url': final, 'accessed_at': captured, 'entry': entry, 'asset_errors': errors, 'baseline': fp, 'charset': charset, 'documents': documents, 'document_errors': document_errors, 'linked_documents_version': 1}
+            metadata = {'url': url, 'final_url': final, 'accessed_at': captured, 'entry': entry, 'asset_errors': errors, 'baseline': fp, 'charset': charset, 'documents': documents, 'document_errors': document_errors, 'linked_documents_version': 1, **capture_info}
             (staging / 'capture.json').write_text(json.dumps(metadata, indent=2))
             folder.parent.mkdir(parents=True, exist_ok=True)
             staging.rename(folder)
@@ -383,7 +389,28 @@ def enrich(url, record, root, loader=fetch):
     return record
 
 
-def run(root, urls):
+def rendered_check(url, old, root):
+    """Upgrade HTTP captures without replacing them or invalidating old archive URLs."""
+    if old and old.get('baseline', {}).get('type') == 'pdf':
+        return check(url, old, root)
+    from browser_capture import BrowserCapture
+    upgrading = bool(old and old.get('accessed_at') and old.get('capture_method') != 'chromium')
+    candidate = {'id': key('chromium-v1:' + url), 'url': url, 'failures': 0, 'use_archive': False} if upgrading else old
+    try:
+        with BrowserCapture() as loader:
+            result = check(url, candidate, root, loader)
+    except Exception as error:
+        # A missing browser is an infrastructure error, not proof the source died.
+        result = dict(old or {'id': key(url), 'url': url, 'use_archive': False})
+        result.update(render_error=str(error), next_check=time.time() + DAY)
+    if upgrading and (not result.get('accessed_at') or result.get('capture_method') != 'chromium'):
+        previous = dict(old)
+        previous.update(render_error=result.get('render_error') or result.get('reason', 'Rendered capture unavailable'), next_check=time.time() + DAY)
+        return previous
+    return result
+
+
+def run(root, urls, upgrade_rendering=False):
     root.mkdir(parents=True, exist_ok=True)
     with (root / 'worker.lock').open('w') as lock:
         try:
@@ -393,24 +420,33 @@ def run(root, urls):
         manifest = root / 'manifest.json'
         # Refuse to overwrite damaged state. Existing captures are irreplaceable.
         records = json.loads(manifest.read_text()) if manifest.exists() else {}
-        due = [u for u in sorted(set(urls)) if records.get(u, {}).get('next_check', 0) <= time.time() or (records.get(u, {}).get('accessed_at') and not records[u].get('linked_documents_version'))]
+        due = [u for u in sorted(set(urls)) if records.get(u, {}).get('next_check', 0) <= time.time() or (records.get(u, {}).get('accessed_at') and not records[u].get('linked_documents_version')) or (upgrade_rendering and records.get(u, {}).get('capture_method') != 'chromium' and records.get(u, {}).get('baseline', {}).get('type') != 'pdf')]
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
             jobs = {}
             for u in due:
                 previous = records.get(u, {})
-                action = enrich if previous.get('accessed_at') and not previous.get('linked_documents_version') else check
+                action = enrich if previous.get('accessed_at') and not previous.get('linked_documents_version') else rendered_check
                 jobs[pool.submit(action, u, previous, root)] = u
             for future in concurrent.futures.as_completed(jobs):
                 url = jobs[future]
-                records[url] = future.result()
+                result = future.result()
+                previous = records.get(url)
+                if previous and previous.get('accessed_at') and previous['id'] != result['id']:
+                    records['archive:' + previous['id']] = previous
+                records[url] = result
                 temporary = root / 'manifest.tmp'
                 temporary.write_text(json.dumps(records, indent=2), encoding='utf-8')
                 temporary.replace(manifest)
                 record = records[url]
-                status = 'archive' if record.get('use_archive') else ('captured' if record.get('accessed_at') else 'unavailable')
-                print('[archive] ' + status + ' ' + url + (' - ' + record['reason'] if record.get('reason') else ''), flush=True)
+                status = 'render-unavailable' if record.get('render_error') else ('archive' if record.get('use_archive') else ('captured' if record.get('accessed_at') else 'unavailable'))
+                print('[archive] ' + status + ' ' + url + (' - ' + (record.get('render_error') or record.get('reason')) if record.get('render_error') or record.get('reason') else ''), flush=True)
 
 
 if __name__ == '__main__':
     socket.setdefaulttimeout(15)
-    run(Path(sys.argv[1]), json.load(sys.stdin))
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('directory', type=Path)
+    parser.add_argument('--upgrade-rendering', action='store_true', help='Capture new browser-rendered versions now; preserve existing snapshots')
+    args = parser.parse_args()
+    run(args.directory, json.load(sys.stdin), upgrade_rendering=args.upgrade_rendering)
