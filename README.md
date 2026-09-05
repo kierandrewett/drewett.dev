@@ -98,6 +98,17 @@ canvas images and open shadow content. Assets already fetched by the browser are
 reused. PDFs continue to use direct downloads. Replay still removes scripts and
 active markup; JavaScript runs only during capture.
 
+Capture uses [Brave's adblocking engine](https://github.com/ArniDagur/python-adblock)
+with EasyList, EasyPrivacy and Fanboy Annoyance (including cookie banners).
+Lists are cached in the archive directory and refreshed daily; a failed refresh
+uses the last saved lists. Network requests are blocked before loading, and matching
+ad/banner elements are removed after JavaScript settles. Removing fixed overlays
+also releases page scroll locks. CSS selector exceptions are respected; advanced
+scriptlet/procedural rules are not executed, so some site-specific clutter may remain.
+No consent buttons are clicked. Existing unfiltered captures receive a new version
+on their next check; old archive URLs and original bytes remain available. Use
+`--upgrade-rendering` to request that upgrade immediately.
+
 The first successful capture keeps the rendered DOM and HTTP response separately,
 plus rewritten HTML, styles,
 images, fonts, scripts, CSS imports and CSS URL dependencies. PDF references
