@@ -2049,3 +2049,8 @@ html[data-reading-theme="sepia"] {
 		display: none !important;
 	}
 }
+
+.reference-meta {
+	color: var(--color-light);
+	font-size: 0.875em;
+}
