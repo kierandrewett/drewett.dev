@@ -12,10 +12,16 @@ FROM alpine:3.21
 
 WORKDIR /app
 
+RUN apk add --no-cache python3 ca-certificates
+
 COPY --from=build /app/target/release/kierand-dev-rust /usr/local/bin/kierand-dev-rust
 COPY static ./static
 COPY templates ./templates
 COPY content ./content
+COPY scripts ./scripts
+
+ENV REFERENCE_ARCHIVE_DIR=/data/reference-archive
+VOLUME ["/data/reference-archive"]
 
 EXPOSE 4173
 
