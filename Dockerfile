@@ -1,4 +1,4 @@
-FROM rust:1.85-alpine AS build
+FROM rust:1.88-alpine AS build
 
 WORKDIR /app
 
@@ -8,11 +8,19 @@ COPY . .
 
 RUN cargo build --release
 
-FROM alpine:3.21
+FROM python:3.12-slim-bookworm
 
 WORKDIR /app
 
-RUN apk add --no-cache python3 ca-certificates
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright
+COPY scripts/requirements.txt ./scripts/requirements.txt
+RUN pip install --no-cache-dir -r scripts/requirements.txt \
+    && python3 -m playwright install --with-deps --only-shell chromium \
+    && useradd --create-home --uid 10001 archive \
+    && mkdir -p /data/reference-archive \
+    && chown archive:archive /data/reference-archive
+
+USER archive
 
 COPY --from=build /app/target/release/kierand-dev-rust /usr/local/bin/kierand-dev-rust
 COPY static ./static
