@@ -1,3 +1,5 @@
+mod references;
+
 use axum::{
     extract::{Path, State},
     http::{header, HeaderValue, StatusCode},
@@ -206,10 +208,14 @@ async fn main() {
         templates: Arc::new(templates),
     });
 
+    tokio::spawn(references::worker(state.clone()));
+
     let app = Router::new()
         .route("/", get(home))
         .route("/notes", get(notes_list))
         .route("/notes/{slug}", get(note_detail))
+        .route("/archive/{id}", get(references::page))
+        .route("/archive/{id}/files/{file}", get(references::asset))
         .route("/cv", get(cv_redirect))
         .route("/cv.pdf", get(cv_pdf))
         .route("/favicon.ico", get(favicon))
@@ -658,7 +664,7 @@ async fn note_detail(State(state): State<Arc<AppState>>, Path(slug): Path<String
 
     let mut context = Context::new();
     context.insert("note", &note);
-    context.insert("note_html", &note.html);
+    context.insert("note_html", &references::render(&note.html).await);
     context.insert("pageviews", &pageviews);
     context.insert("footer_html", &footer_html);
     context.insert("app_css_version", &app_css_version);
