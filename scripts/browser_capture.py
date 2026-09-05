@@ -9,7 +9,10 @@ from archive_references import MAX_ASSETS, MAX_FILE, MAX_TOTAL, fetch, public_ur
 
 
 class BrowserCapture:
-    def __init__(self, validator=public_url):
+    def __init__(self, validator=public_url, adblock_engine=None, filter_directory=None):
+        self.adblock = adblock_engine
+        self.filter_directory = filter_directory or os.path.join(os.environ.get("REFERENCE_ARCHIVE_DIR", ".reference-archive"), "filters")
+        self.blocked = set()
         self.validator = validator
         self.cache = {}
         self.raw_documents = {}
@@ -20,6 +23,9 @@ class BrowserCapture:
         self.context = None
 
     def __enter__(self):
+        from archive_adblock import load_engine
+        if self.adblock is None:
+            self.adblock = load_engine(self.filter_directory)
         from playwright.sync_api import sync_playwright
         self.driver = sync_playwright().start()
         executable = os.environ.get('ARCHIVE_CHROMIUM_PATH') or shutil.which('chromium') or shutil.which('google-chrome')
@@ -53,6 +59,12 @@ class BrowserCapture:
                 route.abort()
             elif route.request.is_navigation_request() and route.request.frame != self.page.main_frame:
                 route.abort()
+            elif not route.request.is_navigation_request() and self.adblock.check_network_urls(
+                route.request.url, route.request.frame.url,
+                {"fetch": "xmlhttprequest", "xhr": "xmlhttprequest"}.get(route.request.resource_type, route.request.resource_type),
+            ).matched:
+                self.blocked.add(urldefrag(route.request.url)[0])
+                route.abort()
             else:
                 route.continue_()
         except Exception:
@@ -85,6 +97,8 @@ class BrowserCapture:
 
     def __call__(self, url):
         """Prefer bytes fetched by this browser, including session-dependent assets."""
+        if urldefrag(url)[0] in self.blocked:
+            raise ValueError("Intentionally blocked advertising/tracking resource")
         return self.cache.get(urldefrag(url)[0]) or fetch(url)
 
     def document(self, url):
@@ -110,6 +124,8 @@ class BrowserCapture:
                 self.page.wait_for_load_state('load', timeout=10000)
             except BrowserTimeout:
                 pass
+            from archive_adblock import clean_page
+            removed = clean_page(self.page, self.adblock)
             # Bounded scrolling triggers lazy images and article sections.
             for step in range(8):
                 self.page.evaluate('step => window.scrollTo(0, step * innerHeight)', step)
@@ -128,6 +144,13 @@ class BrowserCapture:
                     settled = True
                     break
                 self.page.wait_for_timeout(250)
+            removed += clean_page(self.page, self.adblock)
+            # Remove blocked resource elements so the asset collector cannot retry them.
+            self.page.evaluate('''blocked => {
+                for (const el of document.querySelectorAll("[src], link[href]")) {
+                    if (blocked.includes((el.src || el.href || "").split("#")[0])) el.remove();
+                }
+            }''', sorted(self.blocked))
             # Preserve CSS generated through CSSOM, canvas images, and open shadow DOM.
             rendered = self.page.evaluate('''() => {
                 const clone = document.documentElement.cloneNode(true);
@@ -171,7 +194,7 @@ class BrowserCapture:
             original = self.cache.get(urldefrag(response.url)[0]) or raw
             if original:
                 self.raw_documents[url] = original[0]
-            self.info[url] = {'capture_method': 'chromium', 'render_settled': settled, 'rendered_url': final}
+            self.info[url] = {'capture_method': 'chromium', 'render_settled': settled, 'rendered_url': final, 'adblock_version': 1, 'adblock_removed': removed, 'adblock_requests': len(self.blocked)}
             return data, 'text/html', 'utf-8', final
         finally:
             self.page.close()
