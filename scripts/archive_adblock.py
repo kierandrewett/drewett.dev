@@ -1,4 +1,5 @@
 """Network and cosmetic filtering for frozen references (Brave's adblock engine)."""
+import json
 from pathlib import Path
 import threading
 import time
@@ -7,6 +8,7 @@ from archive_references import DAY, fetch
 
 LISTS = {
     'easylist': 'https://easylist.to/easylist/easylist.txt',
+    'adguard-ads': 'https://filters.adtidy.org/extension/ublock/filters/2.txt',
     'easyprivacy': 'https://easylist.to/easylist/easyprivacy.txt',
     'annoyances': 'https://easylist.to/easylist/fanboy-annoyance.txt',
 }
@@ -26,7 +28,7 @@ def load_engine(directory):
             if not path.exists() or time.time() - path.stat().st_mtime > DAY:
                 try:
                     data = fetch(url)[0]
-                    if not data.startswith(b'[Adblock') or len(data) < 1000:
+                    if not data.lstrip(b'!').startswith(b'[Adblock') or len(data) < 1000:
                         raise ValueError('Invalid adblock filter list: ' + name)
                     temporary = path.with_suffix('.tmp')
                     temporary.write_bytes(data)
@@ -41,6 +43,8 @@ def load_engine(directory):
     filters = adblock.FilterSet()
     for rules in lists:
         filters.add_filter_list(rules)
+    corrections = json.loads(Path(__file__).with_name('archive_cosmetic_rules.json').read_text())
+    filters.add_filters([domain + '##' + selector for domain, selectors in corrections.items() for selector in selectors])
     return adblock.Engine(filters)
 
 

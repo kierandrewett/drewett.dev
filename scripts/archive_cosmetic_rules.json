@@ -1,0 +1,7 @@
+{
+  "hbr.org": [
+    "div[data-testid='ad-container']",
+    "div[data-testid='adContainer']",
+    "div[class*='__primary-ad-container']"
+  ]
+}
