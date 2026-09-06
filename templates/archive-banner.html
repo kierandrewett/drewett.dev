@@ -1,4 +1,4 @@
-<section aria-label="Archive information" style="all: initial !important; display: block !important; position: relative !important; z-index: 2147483647 !important; isolation: isolate !important;">
+<archive-banner aria-label="Archive information" style="all: initial !important; display: block !important; position: static !important; grid-column: 1 / -1 !important; flex: none !important; min-width: 0 !important; isolation: isolate !important;">
 <template shadowrootmode="closed">
 <style>
 :host { all: initial; display: block; }
@@ -24,9 +24,11 @@ ul { padding-left: 20px; }
 {% if record.asset_errors | length > 0 %}<p>Some page assets could not be saved.</p>{% endif %}
 {% if record.entry == "document.pdf" %}<p><a href="{{ archive_root }}/document.pdf" download>Download saved PDF</a></p>{% endif %}
 {% if record.documents | length > 0 %}
+<details><summary>Saved papers and full text ({{ record.documents | length }})</summary>
 <ul class="papers" aria-label="Saved papers and full text">
 {% for document in record.documents %}<li><a href="{{ archive_root }}/{{ document.file }}">{{ document.title }}</a><small>Saved {{ document.captured_at }}</small></li>{% endfor %}
 </ul>
+</details>
 {% endif %}
 {% if record.document_errors | length > 0 %}
 <details><summary>{{ record.document_errors | length }} linked document(s) could not be saved</summary><ul>
@@ -35,4 +37,4 @@ ul { padding-left: 20px; }
 {% endif %}
 </header>
 </template>
-</section>
+</archive-banner>

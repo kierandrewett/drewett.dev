@@ -170,6 +170,20 @@ fn native_page(
         &context,
         true,
     )?;
+    let corrections: HashMap<String, Vec<String>> =
+        serde_json::from_str(include_str!("../scripts/archive_cosmetic_rules.json"))?;
+    let source_url = reqwest::Url::parse(&record.url)?;
+    let host = source_url.host_str().unwrap_or_default();
+    let selectors = corrections
+        .iter()
+        .filter(|(domain, _)| host == domain.as_str() || host.ends_with(&format!(".{domain}")))
+        .flat_map(|(_, selectors)| selectors.iter().cloned())
+        .collect::<Vec<_>>();
+    let cosmetic_selector = if selectors.is_empty() {
+        "archive-unused-element".to_owned()
+    } else {
+        selectors.join(",")
+    };
     // Parse and strip active markup on every replay, including older captures.
     // The saved source bytes and assets are never changed by presentation rules.
     let mut has_body = false;
@@ -177,6 +191,10 @@ fn native_page(
         source,
         RewriteStrSettings {
             element_content_handlers: vec![
+                element!(&cosmetic_selector, |el| {
+                    el.remove();
+                    Ok(())
+                }),
                 element!(
                     "script, iframe, frame, frameset, object, embed, applet, base, template",
                     |el| {
@@ -344,6 +362,23 @@ fn protect(mut response: Response, file: &str) -> Response {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn replay_removes_hbr_ad_space_without_changing_other_sites() {
+        let mut record = Record {
+            url: "https://hbr.org/paper".into(),
+            ..Default::default()
+        };
+        let source = r#"<body><div class="Premium-module-scss-module__2MEvEq__primary-ad-container"><div data-testid="ad-container"><div id="primary-ad-slot"></div></div></div><main>Paper</main></body>"#;
+        let result = native_page(source, &record, "test").unwrap();
+        assert!(!result.contains("primary-ad-container"));
+        assert!(!result.contains("primary-ad-slot"));
+        assert!(result.contains("<main>Paper</main>"));
+        record.url = "https://other.example/paper".into();
+        assert!(native_page(source, &record, "test")
+            .unwrap()
+            .contains("primary-ad-slot"));
+    }
+
     #[test]
     fn replay_is_native_and_strips_active_content() {
         let record = Record {
