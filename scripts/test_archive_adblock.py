@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import adblock
-from archive_adblock import load_engine
+from archive_adblock import LISTS, clean_page, load_engine
 from browser_capture import BrowserCapture
 
 
@@ -14,7 +14,7 @@ class AdblockTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             with patch('archive_adblock.fetch', return_value=(rules,)) as fetch:
                 engine = load_engine(temporary)
-                self.assertEqual(fetch.call_count, 3)
+                self.assertEqual(fetch.call_count, len(LISTS))
             self.assertTrue(engine.check_network_urls('https://ads.example/ad.js', 'https://paper.example', 'script').matched)
             with patch('archive_adblock.fetch', side_effect=OSError('offline')) as fetch:
                 load_engine(temporary)
@@ -23,10 +23,26 @@ class AdblockTests(unittest.TestCase):
                 for path in Path(temporary).glob('*.txt'):
                     os.utime(path, (0, 0))
                 load_engine(temporary)
-                self.assertEqual(fetch.call_count, 3)
+                self.assertEqual(fetch.call_count, len(LISTS))
         with tempfile.TemporaryDirectory() as temporary, patch('archive_adblock.fetch', side_effect=OSError('offline')):
             with self.assertRaises(OSError):
                 load_engine(temporary)
+
+    def test_hbr_outer_ad_wrapper_is_removed(self):
+        rules = b'![Adblock Plus 2.0]\n' + b'! padding\n' * 120
+        from playwright.sync_api import sync_playwright
+        with tempfile.TemporaryDirectory() as temporary, patch('archive_adblock.fetch', return_value=(rules,)):
+            engine = load_engine(temporary)
+        with sync_playwright() as p:
+            import shutil
+            browser = p.chromium.launch(executable_path=shutil.which('google-chrome') or shutil.which('chromium'), chromium_sandbox=True)
+            page = browser.new_page()
+            page.route('**/*', lambda route: route.fulfill(body='<html><body><div class="Premium-module-scss-module__2MEvEq__primary-ad-container" style="height:300px"><div data-testid="ad-container"><div id="primary-ad-slot"></div></div></div><main>Article content</main></body></html>', content_type='text/html'))
+            page.goto('https://hbr.org/paper')
+            clean_page(page, engine)
+            self.assertEqual(page.locator('[class*="primary-ad-container"]').count(), 0)
+            self.assertEqual(page.locator('main').inner_text(), 'Article content')
+            browser.close()
 
     def test_network_and_cosmetic_filtering_preserves_paper(self):
         origin = 'https://paper.example'
