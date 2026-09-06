@@ -21,6 +21,7 @@ ul { padding-left: 20px; }
 <header>
 <div class="heading"><h1>Archived copy</h1><time datetime="{{ record.accessed_at }}">Saved {{ record.accessed_at }}</time></div>
 <p>A frozen copy of <a href="{{ record.url }}" rel="noreferrer">{{ record.url }}</a>.</p>
+{% if access_restricted %}<p>The publisher marks this article as restricted; this archive may contain only a preview. <a href="{{ record.url }}" rel="noreferrer">View the original for access options.</a></p>{% endif %}
 {% if record.asset_errors | length > 0 %}<p>Some page assets could not be saved.</p>{% endif %}
 {% if record.entry == "document.pdf" %}<p><a href="{{ archive_root }}/document.pdf" download>Download saved PDF</a></p>{% endif %}
 {% if record.documents | length > 0 %}

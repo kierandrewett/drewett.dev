@@ -164,6 +164,10 @@ fn native_page(
 ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
     let mut context = tera::Context::new();
     context.insert("record", record);
+    // Keep publisher access metadata visible after stripping scripts and overlays.
+    static RESTRICTED: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r#""isAccessibleForFree"\s*:\s*(?:false|"false")"#).unwrap());
+    context.insert("access_restricted", &RESTRICTED.is_match(source));
     context.insert("archive_root", &format!("/archive/{id}/files"));
     let banner = tera::Tera::one_off(
         include_str!("../templates/archive-banner.html"),
@@ -362,6 +366,23 @@ fn protect(mut response: Response, file: &str) -> Response {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn replay_explains_publisher_restricted_previews() {
+        let record = Record {
+            url: "https://hbr.org/paper".into(),
+            ..Default::default()
+        };
+        let source = r#"<html><head><script type="application/ld+json">{"isAccessibleForFree":false}</script></head><body><p>Opening paragraph.</p></body></html>"#;
+        let result = native_page(source, &record, "test").unwrap();
+        assert!(result.contains("may contain only a preview"));
+        assert!(result.contains("Opening paragraph."));
+        assert!(!result.contains("application/ld+json"));
+        let public = source.replace(":false", ":true");
+        assert!(!native_page(&public, &record, "test")
+            .unwrap()
+            .contains("may contain only a preview"));
+    }
+
     #[test]
     fn replay_removes_hbr_ad_space_without_changing_other_sites() {
         let mut record = Record {
