@@ -2054,3 +2054,32 @@ html[data-reading-theme="sepia"] {
 	color: var(--color-light);
 	font-size: 0.875em;
 }
+
+/* Align the note's opening with its prose column. */
+main:has(> article.note-detail) > .page-header {
+	width: 100%;
+	max-width: var(--reading-width, 42rem);
+	margin-inline: auto;
+}
+
+.note-heading {
+	grid-column: prose;
+}
+
+/* Balance the article and contents together from the first paint. Heading
+   markup is server-rendered; TOC visibility changes during initialization. */
+@media (min-width: 1241px) {
+	main:has(#note-body :is(h2, h3) ~ :is(h2, h3)) {
+		--note-optical-shift: min(7rem, max(0px, calc((100vw - var(--reading-width, 42rem) - 15rem) / 2)));
+		position: relative;
+		left: calc(-1 * var(--note-optical-shift));
+	}
+
+	main:has(#note-body :is(h2, h3) ~ :is(h2, h3)) > .note-toc {
+		margin-inline-start: calc(-1 * var(--note-optical-shift));
+	}
+
+	main:has(#note-body :is(h2, h3) ~ :is(h2, h3)) > .reading-rail {
+		left: max(0.9rem, calc(50vw - var(--reading-width, 42rem) / 2 - 3.55rem - var(--reading-rail-gap, 5.5rem) - var(--note-optical-shift)));
+	}
+}
