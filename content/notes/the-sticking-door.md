@@ -2,6 +2,7 @@
 title: The Sticking Door
 date: 2026-06-27
 summary: Most work friction is a door that sticks. Nobody fixes it, so everyone learns to live around it.
+unlisted: true
 ---
 
 Friction is anything between you and the work.
